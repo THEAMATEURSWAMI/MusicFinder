@@ -122,13 +122,47 @@ function App() {
     <div className="actions">
       {!clientId ? (
         <form className="config-form" onSubmit={saveClientId}>
-          <h3>Spotify Configuration</h3>
-          <p>1. Go to <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">Spotify Developer Dashboard</a></p>
-          <p>2. Create an App and add <code>{window.location.origin}</code> to Redirect URIs</p>
-          <p>3. Copy your Client ID and paste below:</p>
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-            <input name="clientId" placeholder="Enter Spotify Client ID" className="btn" style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', color: 'white', flex: 1 }} />
-            <button type="submit" className="btn btn-primary">Save &amp; Continue</button>
+          <h3>🎵 Connect to Spotify</h3>
+
+          <div className="setup-tabs">
+            <div className="setup-option">
+              <div className="setup-option-label">✨ New App</div>
+              <ol className="setup-steps">
+                <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">Spotify Developer Dashboard</a></li>
+                <li>Click <strong>"Create App"</strong></li>
+                <li>Fill in any name/description</li>
+                <li>Under <strong>Redirect URIs</strong>, add: <code>{window.location.origin}</code></li>
+                <li>Check <strong>"Web API"</strong> and save</li>
+                <li>Copy your <strong>Client ID</strong> and paste below</li>
+              </ol>
+            </div>
+
+            <div className="setup-divider">— or —</div>
+
+            <div className="setup-option">
+              <div className="setup-option-label">✏️ Edit Existing App</div>
+              <ol className="setup-steps">
+                <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">Spotify Developer Dashboard</a></li>
+                <li>Click your existing app → <strong>"Edit Settings"</strong></li>
+                <li>Under <strong>Redirect URIs</strong>, add: <code>{window.location.origin}</code></li>
+                <li>Click <strong>Save</strong></li>
+                <li>Copy your <strong>Client ID</strong> from the app overview and paste below</li>
+              </ol>
+            </div>
+          </div>
+
+          <div className="setup-note">
+            💡 <strong>Tip:</strong> If Spotify rejects <code>http://</code>, the app is already running on <code>https://</code> — just make sure your redirect URI matches exactly what's in your address bar.
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
+            <input
+              name="clientId"
+              placeholder="Paste your Spotify Client ID here"
+              className="btn"
+              style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', color: 'white', flex: 1, fontFamily: 'monospace', letterSpacing: '0.02em' }}
+            />
+            <button type="submit" className="btn btn-primary">Connect →</button>
           </div>
         </form>
       ) : !token ? (
