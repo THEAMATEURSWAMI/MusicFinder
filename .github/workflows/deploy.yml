@@ -55,3 +55,17 @@ jobs:
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
           channelId: live
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+
+      - name: Notify Alexa Success
+        if: success()
+        run: |
+          curl -X POST "https://api.notifymyecho.com/v1/NotifyMe" \
+          -H "Content-Type: application/json" \
+          -d "{\"notification\": \"✅ Spotify Unlocked: The crate is full. Build Success.\", \"accessCode\": \"${{ secrets.ALEXA_NOTIFY_ME_TOKEN }}\"}"
+
+      - name: Notify Alexa Failure
+        if: failure()
+        run: |
+          curl -X POST "https://api.notifymyecho.com/v1/NotifyMe" \
+          -H "Content-Type: application/json" \
+          -d "{\"notification\": \"❌ Spotify Unlocked: The crate is empty. Build Failed.\", \"accessCode\": \"${{ secrets.ALEXA_NOTIFY_ME_TOKEN }}\"}"
