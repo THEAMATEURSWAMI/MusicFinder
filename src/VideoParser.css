@@ -1,56 +1,57 @@
+/* VideoParser — enriched with Spotify track data */
+
 .video-parser {
-  max-width: 860px;
-  margin: 0 auto 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .parser-header {
   text-align: center;
-  margin-bottom: 2rem;
 }
 
 .parser-header h2 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: var(--text-main);
   margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #c084fc, #ffd700);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .parser-subtitle {
   color: var(--text-muted);
-  font-size: 1rem;
-  max-width: 540px;
-  margin: 0 auto;
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .parser-subtitle strong {
-  color: var(--accent-secondary);
+  color: var(--text-main);
 }
 
 .url-form {
   display: flex;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  align-items: stretch;
 }
 
 .url-input {
   flex: 1;
-  padding: 0.85rem 1.25rem;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border);
   background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.85rem 1.25rem;
   color: var(--text-main);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-family: inherit;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s ease;
   outline: none;
 }
 
 .url-input:focus {
   border-color: var(--accent-primary);
-}
-
-.url-input::placeholder {
-  color: var(--text-muted);
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
 }
 
 .btn-loading {
@@ -60,138 +61,258 @@
 }
 
 .mini-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .parse-error {
-  background: rgba(220, 38, 38, 0.12);
-  border: 1px solid rgba(220, 38, 38, 0.4);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
   border-radius: 12px;
   padding: 1rem 1.25rem;
   color: #f87171;
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-  font-size: 0.95rem;
-  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
 }
 
 .parse-result {
   background: var(--card-bg);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  padding: 2rem;
-  transition: border-color 0.3s;
-}
-
-.parse-result:hover {
-  border-color: var(--accent-primary);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .result-meta {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
 }
 
 .source-badge {
   background: var(--glass);
   border: 1px solid var(--glass-border);
+  padding: 0.2em 0.75em;
   border-radius: 20px;
-  padding: 0.2rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-muted);
 }
 
 .found-count {
-  font-weight: 700;
+  font-size: 0.85rem;
   color: var(--accent-secondary);
-  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .no-albums {
   color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
   text-align: center;
   padding: 2rem;
 }
+
+/* ===== Enriched parsed cards ===== */
 
 .parsed-album-list {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  margin-bottom: 2rem;
-  max-height: 480px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-.parsed-album-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.parsed-album-list::-webkit-scrollbar-track {
-  background: var(--glass);
-  border-radius: 2px;
-}
-
-.parsed-album-list::-webkit-scrollbar-thumb {
-  background: var(--accent-primary);
-  border-radius: 2px;
 }
 
 .parsed-album-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
+  gap: 0.85rem;
   background: var(--glass);
-  border-radius: 10px;
-  border: 1px solid transparent;
-  transition: border-color 0.2s;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.parsed-album-card.enriched {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 0.85rem;
+  align-items: center;
 }
 
 .parsed-album-card:hover {
-  border-color: var(--glass-border);
+  border-color: rgba(138, 43, 226, 0.35);
+  background: rgba(138, 43, 226, 0.05);
+}
+
+/* Art */
+.parsed-art {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parsed-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.art-searching {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.art-placeholder {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+
+/* Text */
+.parsed-text {
+  min-width: 0;
 }
 
 .parsed-rank {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-primary);
-  min-width: 28px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .parsed-artist {
-  font-size: 0.75rem;
   font-weight: 700;
   color: var(--accent-secondary);
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .parsed-album {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.parsed-from-album {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Actions */
+.parsed-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: nowrap;
+}
+
+.parsed-btn {
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.parsed-btn:hover:not(:disabled) {
+  color: var(--text-main);
+  border-color: var(--accent-primary);
+}
+
+.btn-open-spotify {
+  background: rgba(29, 185, 84, 0.1);
+  border-color: rgba(29, 185, 84, 0.3);
+  color: #1DB954;
+}
+
+.btn-add-sample {
+  background: rgba(138, 43, 226, 0.12);
+  border-color: rgba(138, 43, 226, 0.3);
+  color: #c084fc;
+}
+
+.btn-add-sample:hover {
+  background: rgba(138, 43, 226, 0.25) !important;
+  border-color: var(--accent-primary) !important;
+  color: white !important;
+}
+
+.btn-add-sample.added {
+  background: rgba(29, 185, 84, 0.15) !important;
+  border-color: rgba(29, 185, 84, 0.4) !important;
+  color: #4ade80 !important;
+  cursor: default;
 }
 
 .playlist-action {
-  text-align: center;
-  padding-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--glass-border);
 }
 
 .login-hint {
   text-align: center;
   color: var(--text-muted);
-  font-size: 0.9rem;
-  padding-top: 1rem;
+  font-size: 0.88rem;
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .url-form {
+    flex-direction: column;
+  }
+
+  .parsed-album-card.enriched {
+    grid-template-columns: 40px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .parsed-actions {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+  }
 }

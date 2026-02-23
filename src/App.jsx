@@ -1,10 +1,22 @@
 import { useState, useEffect } from 'react'
 import defaultAlbums from './data'
 import VideoParser from './VideoParser'
+import SampleLab from './SampleLab'
 import './index.css'
 
-const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize"
-const SCOPES = ["playlist-modify-private", "playlist-modify-public"]
+const SCOPES = [
+  "playlist-modify-private",
+  "playlist-modify-public",
+  "user-library-modify",
+  "user-library-read"
+]
+
+// Persist sample vault in localStorage
+const VAULT_KEY = 'spotify_unlocked_vault_v1'
+const loadVault = () => {
+  try { return JSON.parse(localStorage.getItem(VAULT_KEY)) || [] } catch { return [] }
+}
+const saveVault = (v) => localStorage.setItem(VAULT_KEY, JSON.stringify(v))
 
 function App() {
   const [token, setToken] = useState("")
@@ -14,8 +26,10 @@ function App() {
   const [progress, setProgress] = useState(0)
   const [status, setStatus] = useState("")
   const [playlistUrl, setPlaylistUrl] = useState("")
-  const [activeTab, setActiveTab] = useState('list')
+  const [activeTab, setActiveTab] = useState('discover')
   const [parsedAlbums, setParsedAlbums] = useState([])
+  const [sampleVault, setSampleVault] = useState(loadVault)
+  const [vaultPulse, setVaultPulse] = useState(false)
 
   useEffect(() => {
     const hash = window.location.hash
@@ -42,17 +56,19 @@ function App() {
         headers: { Authorization: `Bearer ${t}` }
       })
       if (res.status === 401) {
-        // Token expired — clear it
         setToken("")
         window.localStorage.removeItem("token")
         setSpotifyUser(null)
         return
       }
       const data = await res.json()
-      setSpotifyUser({ name: data.display_name || data.id, id: data.id, url: data.external_urls?.spotify })
-    } catch {
-      // Network error — keep token but don't show user
-    }
+      setSpotifyUser({
+        name: data.display_name || data.id,
+        id: data.id,
+        url: data.external_urls?.spotify,
+        avatar: data.images?.[0]?.url
+      })
+    } catch { }
   }
 
   const saveClientId = (e) => {
@@ -67,17 +83,83 @@ function App() {
   const logout = () => {
     setToken("")
     window.localStorage.removeItem("token")
+    setSpotifyUser(null)
   }
 
   const resetConfig = () => {
     logout()
     setClientId("")
-    setSpotifyUser(null)
     setPlaylistUrl("")
     window.localStorage.removeItem("spotify_client_id")
   }
 
-  const createPlaylist = async (albumList, playlistName = "Spectrum Pulse: Top 50 Albums of 2025") => {
+  // ---- Sample Vault Management ----
+  const addToSamples = (track) => {
+    setSampleVault(prev => {
+      // Avoid duplicates by id or uri
+      const exists = prev.some(s => (track.id && s.id === track.id) || (track.uri && s.uri === track.uri))
+      if (exists) return prev
+      const next = [track, ...prev]
+      saveVault(next)
+      return next
+    })
+    // Pulse the tab badge
+    setVaultPulse(true)
+    setTimeout(() => setVaultPulse(false), 1500)
+  }
+
+  const removeFromSamples = (track) => {
+    setSampleVault(prev => {
+      const next = prev.filter(s => s.id !== track.id && s.uri !== track.uri)
+      saveVault(next)
+      return next
+    })
+  }
+
+  // Add to samples from the Top 50 list
+  const addAlbumToSamples = async (item) => {
+    if (!token) return
+    try {
+      const res = await fetch(
+        `https://api.spotify.com/v1/search?q=album:${encodeURIComponent(item.album)}%20artist:${encodeURIComponent(item.artist)}&type=album&limit=1`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      const data = await res.json()
+      if (data.albums?.items?.length > 0) {
+        const a = data.albums.items[0]
+        addToSamples({
+          id: a.id,
+          uri: a.uri,
+          name: a.name,
+          artist: a.artists[0]?.name,
+          album: a.name,
+          image: a.images[1]?.url || a.images[0]?.url,
+          spotifyUrl: a.external_urls?.spotify,
+          type: 'album',
+          addedAt: Date.now()
+        })
+      } else {
+        addToSamples({
+          id: `manual_${item.artist}_${item.album}`,
+          uri: null,
+          name: item.album,
+          artist: item.artist,
+          addedAt: Date.now()
+        })
+      }
+    } catch {
+      addToSamples({
+        id: `manual_${item.artist}_${item.album}`,
+        uri: null,
+        name: item.album,
+        artist: item.artist,
+        addedAt: Date.now()
+      })
+    }
+  }
+
+  // ---- Create Playlist ----
+  const createPlaylist = async (albumList, playlistName = "SpotifyUnlocked: Top 50") => {
     if (!token) return
     setLoading(true)
     setProgress(0)
@@ -85,7 +167,6 @@ function App() {
     setStatus("Verifying Spotify connection...")
 
     try {
-      // Verify token is still valid first
       const meRes = await fetch("https://api.spotify.com/v1/me", {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -97,9 +178,9 @@ function App() {
         return
       }
       const user = await meRes.json()
-
       const trackUris = []
       const notFound = []
+
       for (let i = 0; i < albumList.length; i++) {
         const { artist, album } = albumList[i]
         setStatus(`[${i + 1}/${albumList.length}] Searching: "${album}" by ${artist}`)
@@ -116,9 +197,7 @@ function App() {
             headers: { Authorization: `Bearer ${token}` }
           })
           const tracksData = await tracksRes.json()
-          if (tracksData.items?.length > 0) {
-            trackUris.push(tracksData.items[0].uri)
-          }
+          if (tracksData.items?.length > 0) trackUris.push(tracksData.items[0].uri)
         } else {
           notFound.push(`${artist} — ${album}`)
         }
@@ -132,13 +211,12 @@ function App() {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           name: playlistName,
-          description: `Generated by MusicFinder — ${trackUris.length} tracks, first song of each album.`,
+          description: `Generated by SpotifyUnlocked — ${trackUris.length} tracks`,
           public: false
         })
       })
       const playlist = await playlistRes.json()
-
-      if (!playlist.id) throw new Error("Playlist creation failed. Check your Spotify app permissions include playlist-modify.")
+      if (!playlist.id) throw new Error("Playlist creation failed. Check your Spotify app permissions.")
 
       setStatus(`Adding ${trackUris.length} tracks...`)
       await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
@@ -148,22 +226,26 @@ function App() {
       })
 
       setProgress(100)
-      setStatus(`✅ Done! ${trackUris.length} tracks added.${notFound.length > 0 ? ` (${notFound.length} albums not found on Spotify)` : ''}`)
+      setStatus(`✅ Done! ${trackUris.length} tracks added.${notFound.length > 0 ? ` (${notFound.length} not found)` : ''}`)
       setPlaylistUrl(playlist.external_urls?.spotify || `https://open.spotify.com/playlist/${playlist.id}`)
       setTimeout(() => setLoading(false), 3000)
     } catch (err) {
-      console.error(err)
       setStatus(`❌ Error: ${err.message}`)
       setTimeout(() => setLoading(false), 3000)
     }
   }
 
+  const TABS = [
+    { id: 'discover', label: '🎵 Discover', desc: 'Curated top albums' },
+    { id: 'parse', label: '🔍 Parse', desc: 'URL / video parser' },
+    { id: 'lab', label: '🎛️ Sample Lab', desc: 'MP3 downloads', badge: sampleVault.length }
+  ]
+
   const spotifyAuthSection = (
-    <div className="actions">
+    <div className="auth-section">
       {!clientId ? (
         <form className="config-form" onSubmit={saveClientId}>
           <h3>🎵 Connect to Spotify</h3>
-
           <div className="setup-tabs">
             <div className="setup-option">
               <div className="setup-option-label">✨ New App</div>
@@ -176,59 +258,48 @@ function App() {
                 <li>Copy your <strong>Client ID</strong> and paste below</li>
               </ol>
             </div>
-
             <div className="setup-divider">— or —</div>
-
             <div className="setup-option">
               <div className="setup-option-label">✏️ Edit Existing App</div>
               <ol className="setup-steps">
                 <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">Spotify Developer Dashboard</a></li>
-                <li>Click your existing app → <strong>"Edit Settings"</strong></li>
-                <li>Under <strong>Redirect URIs</strong>, add: <code>{window.location.origin}</code></li>
-                <li>Click <strong>Save</strong></li>
-                <li>Copy your <strong>Client ID</strong> from the app overview and paste below</li>
+                <li>Click your app → <strong>"Edit Settings"</strong></li>
+                <li>Add: <code>{window.location.origin}</code></li>
+                <li>Save, then copy your <strong>Client ID</strong></li>
               </ol>
             </div>
           </div>
-
           <div className="setup-note">
-            💡 <strong>Tip:</strong> If Spotify rejects <code>http://</code>, the app is already running on <code>https://</code> — just make sure your redirect URI matches exactly what's in your address bar.
+            💡 <strong>Tip:</strong> Your redirect URI must match exactly (including http/https).
           </div>
-
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
             <input
               name="clientId"
               placeholder="Paste your Spotify Client ID here"
               className="btn"
-              style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', color: 'white', flex: 1, fontFamily: 'monospace', letterSpacing: '0.02em' }}
+              style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', color: 'white', flex: 1, fontFamily: 'monospace' }}
             />
             <button type="submit" className="btn btn-primary">Connect →</button>
           </div>
         </form>
       ) : !token ? (
         <div style={{ textAlign: 'center', maxWidth: 520, margin: '0 auto' }}>
-          {/* Show exact redirect URI so user can match it in Spotify dashboard */}
           <div className="redirect-debug">
             <div className="redirect-debug-label">🔗 Redirect URI being sent to Spotify:</div>
             <div className="redirect-debug-uri">
               <code>{window.location.origin}</code>
-              <button
-                className="copy-btn"
-                onClick={() => navigator.clipboard.writeText(window.location.origin)}
-                title="Copy to clipboard"
-              >📋 Copy</button>
+              <button className="copy-btn" onClick={() => navigator.clipboard.writeText(window.location.origin)}>📋 Copy</button>
             </div>
             <div className="redirect-debug-hint">
-              This must match <strong>exactly</strong> what's saved in your Spotify App's Redirect URIs — including <code>http</code> vs <code>https</code> and no trailing slash.
+              This must match <strong>exactly</strong> what's saved in your Spotify App's Redirect URIs.
             </div>
           </div>
-
           <a
             href={`https://accounts.spotify.com/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=${SCOPES.join("%20")}`}
             className="btn btn-spotify"
             style={{ display: 'inline-flex', margin: '1rem auto 0.5rem' }}
           >
-            Login to Spotify
+            🎵 Login to Spotify
           </a>
           <div>
             <button onClick={resetConfig} className="btn" style={{ background: 'transparent', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
@@ -237,80 +308,140 @@ function App() {
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
-          <span style={{ color: '#1DB954', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            ✓ Connected{spotifyUser ? ` as ${spotifyUser.name}` : ' to Spotify'}
+        <div className="connected-bar">
+          {spotifyUser?.avatar && (
+            <img src={spotifyUser.avatar} alt="avatar" className="user-avatar" />
+          )}
+          <span className="connected-label">
+            ✓ {spotifyUser ? spotifyUser.name : 'Connected to Spotify'}
           </span>
           {playlistUrl && (
-            <a href={playlistUrl} target="_blank" rel="noreferrer" className="btn btn-spotify" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}>
-              🎵 Open Last Playlist
+            <a href={playlistUrl} target="_blank" rel="noreferrer" className="btn btn-spotify" style={{ fontSize: '0.82rem', padding: '0.45rem 1rem' }}>
+              🎵 Last Playlist
             </a>
           )}
           <button onClick={logout} className="btn">Logout</button>
-          <button onClick={resetConfig} className="btn" style={{ background: 'transparent', color: 'var(--text-muted)' }}>Reset Config</button>
+          <button onClick={resetConfig} className="btn" style={{ background: 'transparent', color: 'var(--text-muted)' }}>Reset</button>
         </div>
       )}
     </div>
   )
 
   return (
-    <div className="container">
-      <header>
-        <h1>MusicFinder</h1>
-        <p className="subtitle">From Critique to Collection — curating your library from the critics you trust.</p>
-      </header>
+    <div className="app-shell">
+      {/* Sidebar nav */}
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <div className="brand-icon">🎵</div>
+          <div>
+            <div className="brand-name">SpotifyUnlocked</div>
+            <div className="brand-tagline">Your music pipeline</div>
+          </div>
+        </div>
 
-      {spotifyAuthSection}
+        <nav className="sidebar-nav">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              className={`nav-item ${activeTab === tab.id ? 'active' : ''} ${tab.id === 'lab' && vaultPulse ? 'pulsing' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <span className="nav-label">{tab.label}</span>
+              {tab.badge > 0 && (
+                <span className="nav-badge">{tab.badge}</span>
+              )}
+            </button>
+          ))}
+        </nav>
 
-      <div className="tab-bar">
-        <button
-          className={`tab-btn ${activeTab === 'list' ? 'active' : ''}`}
-          onClick={() => setActiveTab('list')}
-        >
-          📋 Spectrum Pulse Top 50
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'parse' ? 'active' : ''}`}
-          onClick={() => setActiveTab('parse')}
-        >
-          🎬 Parse a Video / URL
-        </button>
-      </div>
+        <div className="sidebar-footer">
+          {token && spotifyUser ? (
+            <div className="sidebar-user">
+              {spotifyUser.avatar && <img src={spotifyUser.avatar} alt="" className="user-avatar-sm" />}
+              <div>
+                <div className="sidebar-username">{spotifyUser.name}</div>
+                <button onClick={logout} className="sidebar-logout">Logout</button>
+              </div>
+            </div>
+          ) : (
+            <div className="sidebar-connect-hint">Connect Spotify →</div>
+          )}
+        </div>
+      </aside>
 
-      {activeTab === 'list' && (
-        <>
-          {token && (
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <button onClick={() => createPlaylist(defaultAlbums)} className="btn btn-primary">
-                🎵 Create Playlist from Top 50
-              </button>
+      {/* Main panel */}
+      <main className="main-panel">
+        {/* Top bar */}
+        <div className="topbar">
+          <div className="topbar-title">
+            {TABS.find(t => t.id === activeTab)?.label}
+          </div>
+          <div className="topbar-auth">
+            {spotifyAuthSection}
+          </div>
+        </div>
+
+        <div className="panel-content">
+          {/* DISCOVER TAB */}
+          {activeTab === 'discover' && (
+            <div>
+              <div className="section-intro">
+                <p>Curated from <strong>Spectrum Pulse's Top 50 Albums of 2025</strong>. Click any card to save to your Sample Vault, or create a full Spotify playlist.</p>
+                {token && (
+                  <button onClick={() => createPlaylist(defaultAlbums)} className="btn btn-primary">
+                    🚀 Create Full Playlist
+                  </button>
+                )}
+              </div>
+
+              <div className="album-grid">
+                {defaultAlbums.map((item) => (
+                  <div key={item.rank} className="album-card">
+                    <div className="rank">#{item.rank}</div>
+                    <div className="album-info">
+                      <div className="artist-name">{item.artist}</div>
+                      <h2 className="album-title">{item.album}</h2>
+                    </div>
+                    {token && (
+                      <button
+                        className="add-sample-btn"
+                        onClick={() => addAlbumToSamples(item)}
+                        title="Add to Sample Lab"
+                      >
+                        ﹢
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-          <div className="album-grid">
-            {defaultAlbums.map((item) => (
-              <div key={item.rank} className="album-card">
-                <div className="rank">#{item.rank}</div>
-                <div className="album-info">
-                  <div className="artist-name">{item.artist}</div>
-                  <h2 className="album-title">{item.album}</h2>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
 
-      {activeTab === 'parse' && (
-        <VideoParser
-          token={token}
-          onAlbumsFound={(found) => setParsedAlbums(found)}
-        />
-      )}
+          {/* PARSE TAB */}
+          {activeTab === 'parse' && (
+            <VideoParser
+              token={token}
+              onAlbumsFound={(found) => setParsedAlbums(found)}
+              onAddToSamples={addToSamples}
+            />
+          )}
 
+          {/* SAMPLE LAB TAB */}
+          {activeTab === 'lab' && (
+            <SampleLab
+              token={token}
+              sampleVault={sampleVault}
+              onRemoveSample={removeFromSamples}
+            />
+          )}
+        </div>
+      </main>
+
+      {/* Loading overlay */}
       {loading && (
         <div className="loading-overlay">
           <div className="spinner"></div>
-          <h2 style={{ marginTop: '2rem' }}>{status}</h2>
+          <h2 style={{ marginTop: '2rem', textAlign: 'center', padding: '0 2rem' }}>{status}</h2>
           <div className="progress-bar">
             <div className="progress-fill" style={{ width: `${progress}%` }}></div>
           </div>
