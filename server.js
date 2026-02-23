@@ -7,15 +7,26 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { GoogleGenerativeAI } from '@google/generative-ai'
+import dotenv from 'dotenv'
+
+dotenv.config()
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const execFileAsync = promisify(execFile)
 const execAsync = promisify(exec)
+
+const GEMINI_KEY = process.env.GEMINI_API_KEY
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY
+
+// Initialize Gemini
+const genAI = GEMINI_KEY ? new GoogleGenerativeAI(GEMINI_KEY) : null
+const model = genAI ? genAI.getGenerativeModel({ model: "gemini-2.0-flash" }) : null
 
 const app = express()
 app.use(cors())
 app.use(express.json())
 
-// Serve downloaded mp3 files statically
 const DOWNLOADS_DIR = path.join(__dirname, 'downloads')
 if (!fs.existsSync(DOWNLOADS_DIR)) fs.mkdirSync(DOWNLOADS_DIR, { recursive: true })
 app.use('/downloads', express.static(DOWNLOADS_DIR))
@@ -135,6 +146,52 @@ app.get('/api/transcript', async (req, res) => {
   }
 })
 
+// GET /api/deep-scan?url=...
+// Uses Gemini to intelligently extract music from transcript
+app.get('/api/deep-scan', async (req, res) => {
+  const { url } = req.query
+  if (!url) return res.status(400).json({ error: 'Missing url param' })
+  if (!model) return res.status(503).json({ error: 'Gemini API key not configured in .env' })
+
+  const videoId = extractVideoId(url)
+  let fullText = ""
+
+  try {
+    if (videoId) {
+      const segments = await YoutubeTranscript.fetchTranscript(videoId)
+      fullText = segments.map(s => s.text).join(' ')
+    } else {
+      const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+      const html = await r.text()
+      fullText = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
+    }
+
+    const prompt = `
+      Extract a list of albums and songs mentioned in the following text. 
+      Return ONLY a JSON array of objects with "artist" and "album" (or "track") keys.
+      Ignore mentions that aren't specific music releases.
+      
+      Text: "${fullText.slice(0, 15000)}"
+    `
+
+    const result = await model.generateContent(prompt)
+    const response = await result.response
+    const text = response.text()
+
+    // Clean JSON from response (Gemini sometimes returns markdown ```json ... ```)
+    const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim()
+    const albums = JSON.parse(cleanJson)
+
+    res.json({
+      source: videoId ? 'youtube-ai' : 'web-ai',
+      albums: albums.map(a => ({ artist: a.artist, album: a.album || a.track })),
+      transcriptSnippet: fullText.slice(0, 300) + '...'
+    })
+  } catch (err) {
+    res.status(500).json({ error: `Deep Scan failed: ${err.message}` })
+  }
+})
+
 // POST /api/download
 // Body: { query: "artist - track name", trackId: "spotify_id", trackName: "...", artistName: "..." }
 app.post('/api/download', async (req, res) => {
@@ -209,15 +266,13 @@ app.get('/api/whosampled', async (req, res) => {
   const { artist, track } = req.query
   if (!artist || !track) return res.status(400).json({ error: 'Missing artist or track' })
 
-  const apiKey = process.env.RAPIDAPI_KEY
-  if (!apiKey) {
-    // Return mock/placeholder if no key
+  if (!RAPIDAPI_KEY) {
     return res.json({
       mock: true,
-      message: 'Set RAPIDAPI_KEY env var for live WhoSampled data',
+      message: 'Set RAPIDAPI_KEY in .env for live WhoSampled data',
       samples: [
-        { title: 'Example Sample', artist: 'Classic Artist', year: '1972', type: 'sample' },
-        { title: 'Another Track', artist: 'Vintage Band', year: '1985', type: 'interpolation' }
+        { title: 'Funky Drummer', artist: 'James Brown', year: '1970', type: 'Drums' },
+        { title: 'Impeach the President', artist: 'The Honey Drippers', year: '1973', type: 'Drums' }
       ]
     })
   }
@@ -227,12 +282,13 @@ app.get('/api/whosampled', async (req, res) => {
       `https://who-sampled.p.rapidapi.com/v1.0/samples/?trackName=${encodeURIComponent(track)}&artistName=${encodeURIComponent(artist)}`,
       {
         headers: {
-          'X-RapidAPI-Key': apiKey,
+          'X-RapidAPI-Key': RAPIDAPI_KEY,
           'X-RapidAPI-Host': 'who-sampled.p.rapidapi.com'
         }
       }
     )
     const data = await r.json()
+    // Most WhoSampled APIs return an object with a samples array
     return res.json(data)
   } catch (err) {
     return res.status(500).json({ error: `WhoSampled API error: ${err.message}` })

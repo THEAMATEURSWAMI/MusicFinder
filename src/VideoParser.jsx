@@ -14,8 +14,8 @@ export default function VideoParser({ onAlbumsFound, token, onAddToSamples }) {
     const [searching, setSearching] = useState({})
     const [addedToVault, setAddedToVault] = useState({})
 
-    const handleParse = async (e) => {
-        e.preventDefault()
+    const handleParse = async (e, isDeep = false) => {
+        if (e) e.preventDefault()
         if (!url.trim()) return
         setLoading(true)
         setError('')
@@ -24,7 +24,8 @@ export default function VideoParser({ onAlbumsFound, token, onAddToSamples }) {
         setAddedToVault({})
 
         try {
-            const res = await fetch(`/api/transcript?url=${encodeURIComponent(url)}`)
+            const endpoint = isDeep ? '/api/deep-scan' : '/api/transcript'
+            const res = await fetch(`${endpoint}?url=${encodeURIComponent(url)}`)
             const data = await res.json()
             if (!res.ok) throw new Error(data.error || 'Unknown error')
             setResult(data)
@@ -206,7 +207,7 @@ export default function VideoParser({ onAlbumsFound, token, onAddToSamples }) {
                 </p>
             </div>
 
-            <form className="url-form" onSubmit={handleParse}>
+            <form className="url-form" onSubmit={(e) => handleParse(e, false)}>
                 <input
                     type="url"
                     value={url}
@@ -215,14 +216,20 @@ export default function VideoParser({ onAlbumsFound, token, onAddToSamples }) {
                     className="url-input"
                     required
                 />
-                <button type="submit" className="btn btn-primary" disabled={loading}>
-                    {loading ? (
-                        <span className="btn-loading">
-                            <span className="mini-spinner" />
-                            Parsing...
-                        </span>
-                    ) : '🔍 Parse'}
-                </button>
+                <div className="parser-buttons">
+                    <button type="submit" className="btn btn-primary" disabled={loading}>
+                        {loading ? 'Parsing...' : '🔍 Parse'}
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-ai"
+                        onClick={() => handleParse(null, true)}
+                        disabled={loading}
+                        title="Use Gemini 2.5 Flash for intelligent extraction"
+                    >
+                        {loading ? 'Thinking...' : '✨ AI Deep Scan'}
+                    </button>
+                </div>
             </form>
 
             {error && (

@@ -32,8 +32,16 @@
 
 .url-form {
   display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 800px;
+  margin: 0 auto 2.5rem;
+}
+
+.parser-buttons {
+  display: flex;
   gap: 0.75rem;
-  align-items: stretch;
+  justify-content: center;
 }
 
 .url-input {
@@ -45,13 +53,27 @@
   color: var(--text-main);
   font-size: 0.95rem;
   font-family: inherit;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
   outline: none;
+  text-align: center;
 }
 
 .url-input:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
+}
+
+.btn-ai {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+}
+
+.btn-ai:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.6);
+  color: white;
 }
 
 .btn-loading {

@@ -1,0 +1,16 @@
+{
+  "appId": "com.spotifyunlocked",
+  "appName": "SpotifyUnlocked",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 3000,
+      "launchAutoHide": true,
+      "backgroundColor": "#080810",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": true,
+      "androidSpinnerStyle": "large",
+      "spinnerColor": "#999999"
+    }
+  }
+}
