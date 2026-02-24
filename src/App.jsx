@@ -384,10 +384,10 @@ function App() {
       {/* Sidebar nav */}
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="brand-icon">📟</div>
+          <div className="brand-icon">🛋️💰</div>
           <div>
-            <div className="brand-name">Smart Calc</div>
-            <div className="brand-tagline">Advanced Logic v2.1</div>
+            <div className="brand-name">SpotifyUnlocked</div>
+            <div className="brand-tagline">Premium Music Lab</div>
           </div>
         </div>
 
