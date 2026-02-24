@@ -11,6 +11,11 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
     const [ytdlpStatus, setYtdlpStatus] = useState(null)
     const [downloads, setDownloads] = useState([])
     const [downloading, setDownloading] = useState({})
+
+    // Production Railway Backend URL
+    const API_BASE = import.meta.env.PROD
+        ? 'https://musicfinder-production.up.railway.app'
+        : ''; // In dev, we use the proxy/localhost
     const [whoSampledData, setWhoSampledData] = useState({})
     const [whoSampledLoading, setWhoSampledLoading] = useState({})
     const [expandedSample, setExpandedSample] = useState(null)
@@ -19,7 +24,7 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
 
     useEffect(() => {
         // Check yt-dlp availability
-        fetch('/api/ytdlp-status')
+        fetch(`${API_BASE}/api/ytdlp-status`)
             .then(r => r.json())
             .then(data => setYtdlpStatus(data))
             .catch(() => setYtdlpStatus({ available: false }))
@@ -29,7 +34,7 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
     }, [])
 
     const loadDownloads = () => {
-        fetch('/api/downloads')
+        fetch(`${API_BASE}/api/downloads`)
             .then(r => r.json())
             .then(data => setDownloads(data))
             .catch(() => setDownloads([]))
@@ -41,7 +46,7 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
 
         try {
             const query = `${sample.artist} ${sample.name}`
-            const res = await fetch('/api/download', {
+            const res = await fetch(`${API_BASE}/api/download`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -87,7 +92,7 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
         setWhoSampledLoading(prev => ({ ...prev, [key]: true }))
         try {
             const res = await fetch(
-                `/api/whosampled?artist=${encodeURIComponent(sample.artist)}&track=${encodeURIComponent(sample.name)}`
+                `${API_BASE}/api/whosampled?artist=${encodeURIComponent(sample.artist)}&track=${encodeURIComponent(sample.name)}`
             )
             const data = await res.json()
             setWhoSampledData(prev => ({ ...prev, [key]: data }))
@@ -99,7 +104,7 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
     }
 
     const deleteDownload = async (filename) => {
-        await fetch(`/api/downloads/${filename}`, { method: 'DELETE' })
+        await fetch(`${API_BASE}/api/downloads/${filename}`, { method: 'DELETE' })
         loadDownloads()
     }
 
@@ -242,7 +247,7 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
                                         <div className="download-ready">
                                             <audio
                                                 ref={el => audioRefs.current[key] = el}
-                                                src={existingDownload.url}
+                                                src={`${API_BASE}${existingDownload.url}`}
                                                 preload="none"
                                             />
                                             <button
@@ -255,7 +260,7 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
                                                 title="Preview"
                                             >▶</button>
                                             <a
-                                                href={existingDownload.url}
+                                                href={`${API_BASE}${existingDownload.url}`}
                                                 download
                                                 className="vault-btn btn-download-ready"
                                                 title={`Download (${formatBytes(existingDownload.size)})`}
@@ -388,7 +393,7 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
                                     <div className="dl-size">{formatBytes(d.size)}</div>
                                 </div>
                                 <div className="dl-actions">
-                                    <a href={d.url} download className="vault-btn btn-download-ready">⬇</a>
+                                    <a href={`${API_BASE}${d.url}`} download className="vault-btn btn-download-ready">⬇</a>
                                     <button className="vault-btn btn-delete-dl" onClick={() => deleteDownload(d.filename)}>🗑</button>
                                 </div>
                             </div>

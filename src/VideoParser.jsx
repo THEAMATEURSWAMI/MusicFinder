@@ -14,6 +14,11 @@ export default function VideoParser({ onAlbumsFound, token, onAddToSamples }) {
     const [searching, setSearching] = useState({})
     const [addedToVault, setAddedToVault] = useState({})
 
+    // Production Railway Backend URL
+    const API_BASE = import.meta.env.PROD
+        ? 'https://musicfinder-production.up.railway.app'
+        : ''; // In dev, we use the proxy/localhost
+
     const handleParse = async (e, isDeep = false) => {
         if (e) e.preventDefault()
         if (!url.trim()) return
@@ -25,7 +30,7 @@ export default function VideoParser({ onAlbumsFound, token, onAddToSamples }) {
 
         try {
             const endpoint = isDeep ? '/api/deep-scan' : '/api/transcript'
-            const res = await fetch(`${endpoint}?url=${encodeURIComponent(url)}`)
+            const res = await fetch(`${API_BASE}${endpoint}?url=${encodeURIComponent(url)}`)
             const data = await res.json()
             if (!res.ok) throw new Error(data.error || 'Unknown error')
             setResult(data)
