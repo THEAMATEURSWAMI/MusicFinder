@@ -24,9 +24,31 @@ const genAI = GEMINI_KEY ? new GoogleGenerativeAI(GEMINI_KEY) : null
 const model = genAI ? genAI.getGenerativeModel({ model: "gemini-2.0-flash" }) : null
 
 const app = express()
-app.use(cors())
+
+// Dynamic CORS: Allow localhost for dev, and your Firebase/Mobile domains for prod
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://localhost:5173',
+  'https://spotifyunlocked.web.app',
+  'https://spotifyunlocked.firebaseapp.com',
+  'capacitor://localhost', // Android
+  'http://localhost'         // iOS
+]
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}))
+
 app.use(express.json())
 
+const PORT = process.env.PORT || 3001
 const DOWNLOADS_DIR = path.join(__dirname, 'downloads')
 if (!fs.existsSync(DOWNLOADS_DIR)) fs.mkdirSync(DOWNLOADS_DIR, { recursive: true })
 app.use('/downloads', express.static(DOWNLOADS_DIR))
@@ -335,5 +357,4 @@ app.delete('/api/downloads/:filename', (req, res) => {
   }
 })
 
-const PORT = 3001
-app.listen(PORT, () => console.log(`🎵 SpotifyUnlocked API running on http://localhost:${PORT}`))
+app.listen(PORT, () => console.log(`🎵 SpotifyUnlocked API running on port ${PORT}`))
