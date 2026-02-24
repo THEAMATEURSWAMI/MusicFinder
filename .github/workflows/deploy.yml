@@ -44,9 +44,11 @@ jobs:
       - name: Upload to Firebase App Distribution
         uses: w9jds/firebase-action@master
         with:
-          args: appdistribution:distribute android/app/build/outputs/apk/debug/app-debug.apk --app ${{ secrets.FIREBASE_ANDROID_APP_ID }} --groups "testers"
+          args: appdistribution:distribute android/app/build/outputs/apk/debug/app-debug.apk --app "$FIREBASE_APP_ID" --groups "$FIREBASE_GROUPS"
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          FIREBASE_GROUPS: "testers"
 
       - name: Deploy Hosting
         continue-on-error: true
