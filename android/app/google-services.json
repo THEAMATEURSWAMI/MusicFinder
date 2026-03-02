@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "504617755413",
+    "project_id": "spotifyunlocked",
+    "storage_bucket": "spotifyunlocked.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:504617755413:android:35832a7d8571bbcffeff1c",
+        "android_client_info": {
+          "package_name": "com.spotifyunlocked"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6UAtEYVfcsN9MIB0ns3UkVhx0XKPq048"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
