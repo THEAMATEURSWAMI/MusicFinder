@@ -112,12 +112,39 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
         return downloads.find(d => d.filename.startsWith(sample.id))
     }
 
-    const filteredSamples = sampleVault.filter(s => {
-        if (activeFilter === 'all') return true
+    const filteredSamples = [...sampleVault].filter(s => {
         if (activeFilter === 'downloaded') return !!getDownloadForTrack(s)
         if (activeFilter === 'pending') return !getDownloadForTrack(s)
         return true
     })
+
+    // Apply shuffle logic if requested
+    let displaySamples = filteredSamples
+    if (activeFilter === 'true-random') {
+        // Simple Fisher-Yates
+        for (let i = displaySamples.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [displaySamples[i], displaySamples[j]] = [displaySamples[j], displaySamples[i]]
+        }
+    } else if (activeFilter === 'atmospheric') {
+        // Distribution logic
+        const byArtist = {}
+        displaySamples.forEach(item => {
+            const artist = item.artist || 'Unknown'
+            if (!byArtist[artist]) byArtist[artist] = []
+            byArtist[artist].push(item)
+        })
+        const shuffled = []
+        const artists = Object.keys(byArtist)
+        let maxLen = 0
+        artists.forEach(a => { if (byArtist[a].length > maxLen) maxLen = byArtist[a].length })
+        for (let i = 0; i < maxLen; i++) {
+            artists.forEach(artist => {
+                if (byArtist[artist][i]) shuffled.push(byArtist[artist][i])
+            })
+        }
+        displaySamples = shuffled
+    }
 
     const totalDownloaded = downloads.length
     const totalSize = downloads.reduce((acc, d) => acc + (d.size || 0), 0)
@@ -165,6 +192,48 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
                 </div>
             )}
 
+            {/* Deep Shuffle Control Center */}
+            {sampleVault.length > 0 && (
+                <div className="shuffle-center ombre-panel">
+                    <div className="shuffle-header">
+                        <div className="shuffle-title">
+                            🛰️ Deep Shuffle Engine
+                        </div>
+                        <div className="ytdlp-banner ytdlp-ok" style={{ margin: 0, padding: '0.2rem 0.6rem', fontSize: '0.7rem' }}>
+                            Ready to Disrupt
+                        </div>
+                    </div>
+
+                    <div className="shuffle-modes">
+                        <div
+                            className={`shuffle-card ${activeFilter === 'true-random' ? 'active' : ''}`}
+                            onClick={() => setActiveFilter('true-random')}
+                        >
+                            <span className="mode-icon">🌪️</span>
+                            <span className="mode-name">True Random</span>
+                            <p className="mode-desc">Fisher-Yates algorithm. Complete unpredictability. Zero weights.</p>
+                        </div>
+                        <div
+                            className={`shuffle-card ${activeFilter === 'atmospheric' ? 'active' : ''}`}
+                            onClick={() => setActiveFilter('atmospheric')}
+                        >
+                            <span className="mode-icon">🌌</span>
+                            <span className="mode-name">Atmospheric</span>
+                            <p className="mode-desc">Smart distribution. Spaced-out artists. No repeat fatigue.</p>
+                        </div>
+                    </div>
+
+                    <div className="shuffle-history-info ombre-panel" style={{ marginTop: '1rem', padding: '1.2rem', borderRadius: '20px', fontSize: '0.85rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ fontWeight: 800, marginBottom: '0.5rem', color: 'var(--accent-secondary)' }}>💡 Why Deep Shuffle?</div>
+                        <p style={{ color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                            Standard "Shuffle" on most platforms is often weighted to keep you listening, sometimes creating predictable loops.
+                            <strong> True Random</strong> uses the Fisher-Yates method—scientifically perfect randomization.
+                            <strong> Atmospheric</strong> spreads artists evenly to prevent "clustering," so your discovery stays fresh and unbiased.
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {/* Filter tabs */}
             {sampleVault.length > 0 && (
                 <div className="lab-filters">
@@ -194,7 +263,7 @@ export default function SampleLab({ token, sampleVault, onRemoveSample }) {
                 </div>
             ) : (
                 <div className="vault-list">
-                    {filteredSamples.map((sample, i) => {
+                    {displaySamples.map((sample, i) => {
                         const key = sample.id || sample.uri
                         const dlStatus = downloading[key]
                         const existingDownload = getDownloadForTrack(sample)

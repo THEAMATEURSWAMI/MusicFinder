@@ -1103,6 +1103,16 @@ code {
   animation: slide-in-top 0.5s ease-out;
 }
 
+.now-playing-ticker.top-track-mode {
+  background: rgba(255, 215, 0, 0.05);
+  /* Subtle gold */
+  border-color: rgba(255, 215, 0, 0.2);
+}
+
+.now-playing-ticker.top-track-mode .ticker-label {
+  color: #ffd700;
+}
+
 @keyframes slide-in-top {
   from {
     transform: translateY(-10px);
@@ -1239,5 +1249,112 @@ code {
 @media (max-width: 850px) {
   .now-playing-ticker {
     display: none;
+  }
+}
+
+/* =====================
+   Deep Shuffle UI
+   ===================== */
+.shuffle-center {
+  background: var(--glass);
+  padding: 2rem;
+  border-radius: 30px;
+  border: 1px solid var(--glass-border);
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.shuffle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shuffle-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.shuffle-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.shuffle-card {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+}
+
+.shuffle-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--accent-secondary);
+}
+
+.shuffle-card.active {
+  background: rgba(138, 43, 226, 0.1);
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.1);
+}
+
+.mode-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.mode-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: block;
+  margin-bottom: 0.25rem;
+  color: white;
+}
+
+.mode-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.shuffle-btn-main {
+  background: var(--brand-gradient);
+  color: white;
+  border: none;
+  padding: 1.2rem;
+  border-radius: 20px;
+  font-weight: 950;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.9rem;
+  box-shadow: 0 10px 20px rgba(138, 43, 226, 0.2);
+}
+
+.shuffle-btn-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(138, 43, 226, 0.3);
+}
+
+.shuffle-btn-main:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 600px) {
+  .shuffle-modes {
+    grid-template-columns: 1fr;
   }
 }

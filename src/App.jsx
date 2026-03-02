@@ -175,6 +175,46 @@ function App() {
     return () => clearInterval(interval)
   }, [token])
 
+  // ---- Deep Shuffle Algorithm ----
+  const deepShuffle = (list, mode = 'true') => {
+    const array = [...list]
+    if (mode === 'true') {
+      // Fisher-Yates (True Random)
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]
+      }
+    } else {
+      // Atmospheric Shuffle (Distributed)
+      // Groups by artist and interleaves them to prevent artist clusters
+      const byArtist = {}
+      array.forEach(item => {
+        const artist = item.artist || 'Unknown'
+        if (!byArtist[artist]) byArtist[artist] = []
+        byArtist[artist].push(item)
+      })
+
+      const shuffled = []
+      const artists = Object.keys(byArtist)
+      // Randomize artist order first
+      for (let i = artists.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [artists[i], artists[j]] = [artists[j], artists[i]]
+      }
+
+      let maxLen = 0
+      artists.forEach(a => { if (byArtist[a].length > maxLen) maxLen = byArtist[a].length })
+
+      for (let i = 0; i < maxLen; i++) {
+        artists.forEach(artist => {
+          if (byArtist[artist][i]) shuffled.push(byArtist[artist][i])
+        })
+      }
+      return shuffled
+    }
+    return array
+  }
+
   const saveClientId = (e) => {
     e.preventDefault()
     const id = e.target.clientId.value.trim()
@@ -474,11 +514,16 @@ function App() {
               {TABS.find(t => t.id === activeTab)?.label}
             </div>
 
-            {nowPlaying && (
+            {nowPlaying ? (
               <div className="now-playing-ticker">
                 <span className="ticker-label">LIVE:</span>
-                <span className="ticker-text">{nowPlaying.name} — {nowPlaying.artists[0].name}</span>
+                <span className="ticker-text">{nowPlaying.name} — {nowPlaying.artists[0]?.name}</span>
                 <div className="ticker-pulse"></div>
+              </div>
+            ) : topTrack && (
+              <div className="now-playing-ticker top-track-mode">
+                <span className="ticker-label">TOP:</span>
+                <span className="ticker-text">{topTrack.name} — {topTrack.artists[0]?.name}</span>
               </div>
             )}
           </div>
