@@ -468,7 +468,7 @@ function App() {
       {/* SIDE DATA BAR - MONITORING & AUTH */}
       <aside className="side-monitor">
         <div className="monitor-pane">
-          <div className="monitor-header">TELEMETRY_v2.0</div>
+          <div className="monitor-header">SYSTEM_INTEGRITY_INDEX</div>
           <div className="playback-status">
             {nowPlaying ? (
               <div className="status-item active">
@@ -484,15 +484,15 @@ function App() {
               </div>
             ) : (
               <div className="status-item offline">
-                <label>SIGNAL_PENDING</label>
-                <div className="val">WAITING_FOR_DATA</div>
+                <label>SIGNAL_SEARCH</label>
+                <div className="val">WAITING_FOR_DATA_SYNC</div>
               </div>
             )}
           </div>
 
           <div className="branding-node">
-            <h1>UNLOCKED_LAB</h1>
-            <div className="sys-ver">OP_BUILD_5485ca9</div>
+            <h1>UNLOCKED_PRIME</h1>
+            <div className="sys-ver">OP_BUILD_v2.5</div>
           </div>
 
           <div className="monitor-auth">
