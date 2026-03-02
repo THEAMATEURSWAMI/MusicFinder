@@ -48,21 +48,31 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - name: Validate and Write Service Account
+        run: |
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "❌ ERROR: FIREBASE_SERVICE_ACCOUNT secret is empty!"
+            exit 1
+          fi
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service-account.json
+          # Basic JSON validation
+          if ! node -e "JSON.parse(require('fs').readFileSync('service-account.json', 'utf8'))"; then
+            echo "❌ ERROR: FIREBASE_SERVICE_ACCOUNT is NOT valid JSON. Please re-copy from Firebase console."
+            exit 1
+          fi
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: service-account.json
 
       - name: Upload to Firebase App Distribution
         env:
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          GOOGLE_APPLICATION_CREDENTIALS: service-account.json
         run: |
           npm install -g firebase-tools
           firebase appdistribution:distribute \
             android/app/build/outputs/apk/debug/app-debug.apk \
             --app "$FIREBASE_APP_ID" \
-            --groups "testers" \
-            --project spotifyunlocked
+            --groups "testers"
 
   notify:
     runs-on: ubuntu-latest
