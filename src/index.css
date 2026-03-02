@@ -1107,6 +1107,29 @@ code {
   background: rgba(255, 215, 0, 0.05);
   /* Subtle gold */
   border-color: rgba(255, 215, 0, 0.2);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.now-playing-ticker.top-track-mode::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 215, 0, 0.1),
+      transparent);
+  animation: shine 4s infinite linear;
+}
+
+@keyframes shine {
+  to {
+    left: 200%;
+  }
 }
 
 .now-playing-ticker.top-track-mode .ticker-label {
@@ -1372,7 +1395,8 @@ code {
   gap: 1.2rem;
   overflow-x: auto;
   padding: 1rem 0.5rem 2rem;
-  scrollbar-width: none; /* Hide scrollbar for clean look */
+  scrollbar-width: none;
+  /* Hide scrollbar for clean look */
 }
 
 .gems-container::-webkit-scrollbar {
@@ -1399,7 +1423,7 @@ code {
   height: 64px;
   border-radius: 12px;
   object-fit: cover;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .gem-info {
@@ -1429,7 +1453,9 @@ code {
   gap: 0.4rem;
 }
 
-.badge-rare, .badge-trend, .badge-sample {
+.badge-rare,
+.badge-trend,
+.badge-sample {
   font-size: 0.65rem;
   font-weight: 900;
   padding: 0.2rem 0.5rem;
