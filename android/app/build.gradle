@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.antigravity.spotifyunlocked"
+    namespace = "com.spotifyunlocked"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.antigravity.spotifyunlocked"
+        applicationId "com.spotifyunlocked"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
