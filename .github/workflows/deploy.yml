@@ -49,20 +49,44 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
 
-      - name: Debug Secrets (Check if keys exist)
+      - name: 🔥 Firebase Auth Diagnostic
         run: |
-          if [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then echo "✅ SERVICE_ACCOUNT is detected"; else echo "❌ SERVICE_ACCOUNT is MISSING in GitHub Secrets"; fi
-          if [ -n "${{ secrets.FIREBASE_TOKEN }}" ]; then echo "✅ FIREBASE_TOKEN is detected"; else echo "❌ FIREBASE_TOKEN is MISSING in GitHub Secrets"; fi
-          if [ -n "${{ secrets.FIREBASE_ANDROID_APP_ID }}" ]; then echo "✅ FIREBASE_APP_ID is detected"; else echo "❌ FIREBASE_APP_ID is MISSING in GitHub Secrets"; fi
+          echo "Checking secret availability and lengths (Masked)..."
+          if [ -n "${{ secrets.FIREBASE_TOKEN }}" ]; then
+            echo "✅ FIREBASE_TOKEN: Detected (Length: ${#FIREBASE_TOKEN})"
+          else
+            echo "❌ FIREBASE_TOKEN: NOT FOUND"
+          fi
+          
+          if [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "✅ SERVICE_ACCOUNT: Detected (Length: ${#FIREBASE_SERVICE_ACCOUNT})"
+          else
+            echo "❌ SERVICE_ACCOUNT: NOT FOUND"
+          fi
 
-      - name: Distribute to Firebase
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          token: ${{ secrets.FIREBASE_TOKEN }}
-          groups: testers
-          file: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: 🚀 Distribute to Firebase
+        env:
+          APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          FB_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          # Write SA JSON to file for CLI to use
+          echo "$SA_JSON" > sa.json
+          
+          if [ -n "$FB_TOKEN" ]; then
+            echo "🔐 Attempting distribution via TOKEN..."
+            npx firebase-tools appdistribution:distribute android/app/build/outputs/apk/debug/app-debug.apk \
+              --app "$APP_ID" \
+              --token "$FB_TOKEN" \
+              --groups "testers" \
+              --non-interactive
+          else
+            echo "🔑 Attempting distribution via SERVICE ACCOUNT..."
+            GOOGLE_APPLICATION_CREDENTIALS=sa.json npx firebase-tools appdistribution:distribute android/app/build/outputs/apk/debug/app-debug.apk \
+              --app "$APP_ID" \
+              --groups "testers" \
+              --non-interactive
+          fi
 
   notify:
     runs-on: ubuntu-latest
