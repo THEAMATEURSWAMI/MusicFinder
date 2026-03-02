@@ -11,7 +11,10 @@ const SCOPES = [
   "playlist-modify-private",
   "playlist-modify-public",
   "user-library-modify",
-  "user-library-read"
+  "user-library-read",
+  "user-read-currently-playing",
+  "user-read-playback-state",
+  "user-top-read"
 ]
 
 // Persist sample vault in localStorage
@@ -33,6 +36,8 @@ function App() {
   const [parsedAlbums, setParsedAlbums] = useState([])
   const [sampleVault, setSampleVault] = useState(loadVault)
   const [vaultPulse, setVaultPulse] = useState(false)
+  const [nowPlaying, setNowPlaying] = useState(null)
+  const [topTrack, setTopTrack] = useState(null)
 
   // Firebase Cloud Global State
   const [user, setUser] = useState(null)
@@ -134,6 +139,41 @@ function App() {
       })
     } catch { }
   }
+
+  // Real-time Playback & Top Tracks Poll
+  useEffect(() => {
+    if (!token) return
+
+    const fetchRealtime = async () => {
+      try {
+        // 1. Now Playing
+        const currentRes = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (currentRes.status === 200) {
+          const data = await currentRes.json()
+          setNowPlaying(data.item)
+        } else if (currentRes.status === 204) {
+          setNowPlaying(null)
+        }
+
+        // 2. Top Track (Most Listened)
+        const topRes = await fetch("https://api.spotify.com/v1/me/top/tracks?limit=1&time_range=short_term", {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (topRes.status === 200) {
+          const data = await topRes.json()
+          if (data.items?.length > 0) setTopTrack(data.items[0])
+        }
+      } catch (err) {
+        console.log("Realtime fetch error:", err)
+      }
+    }
+
+    fetchRealtime()
+    const interval = setInterval(fetchRealtime, 5000) // Poll every 5s for "platform rate" response
+    return () => clearInterval(interval)
+  }, [token])
 
   const saveClientId = (e) => {
     e.preventDefault()
@@ -302,7 +342,8 @@ function App() {
   const TABS = [
     { id: 'discover', label: 'Discover', icon: '✨' },
     { id: 'parse', label: 'Parse', icon: '🔍' },
-    { id: 'lab', label: 'Sample Lab', icon: '📀', badge: sampleVault.length }
+    { id: 'lab', label: 'Sample Lab', icon: '📀', badge: sampleVault.length },
+    { id: 'hub', label: 'Matrix', icon: '🛰️' }
   ]
 
   const spotifyAuthSection = (
@@ -428,9 +469,20 @@ function App() {
       <main className="main-panel">
         {/* Top bar */}
         <div className="topbar">
-          <div className="topbar-title">
-            {TABS.find(t => t.id === activeTab)?.label}
+          <div className="topbar-left">
+            <div className="topbar-title">
+              {TABS.find(t => t.id === activeTab)?.label}
+            </div>
+
+            {nowPlaying && (
+              <div className="now-playing-ticker">
+                <span className="ticker-label">LIVE:</span>
+                <span className="ticker-text">{nowPlaying.name} — {nowPlaying.artists[0].name}</span>
+                <div className="ticker-pulse"></div>
+              </div>
+            )}
           </div>
+
           <div className="topbar-auth">
             {spotifyAuthSection}
           </div>
@@ -483,13 +535,43 @@ function App() {
                 />
               )}
 
-              {/* SAMPLE LAB TAB */}
               {activeTab === 'lab' && (
                 <SampleLab
                   token={token}
                   sampleVault={sampleVault}
                   onRemoveSample={removeFromSamples}
                 />
+              )}
+
+              {/* DISCOVERY HUB TAB */}
+              {activeTab === 'hub' && (
+                <div className="discovery-hub ombre-panel">
+                  <div className="hub-hero">
+                    <h1 className="hub-title">Discovery Matrix</h1>
+                    <p className="hub-subtitle text-glow">
+                      The next evolution of music connectivity. Mapping
+                      sonic signatures and visualizing hidden genre bridges.
+                    </p>
+                  </div>
+
+                  <div className="hub-matrix-grid">
+                    <div className="matrix-card glass-card">
+                      <div className="matrix-icon">🧠</div>
+                      <span className="matrix-label">AI Mood Mapping</span>
+                      <p className="matrix-desc">Deconstruct tracks into emotional vectors for hyper-specific discovery.</p>
+                    </div>
+                    <div className="matrix-card glass-card">
+                      <div className="matrix-icon">🔗</div>
+                      <span className="matrix-label">Sonic Connectivity</span>
+                      <p className="matrix-desc">Visualize the thread between obscure samples and chart-topping hits.</p>
+                    </div>
+                    <div className="matrix-card glass-card">
+                      <div className="matrix-icon">🔮</div>
+                      <span className="matrix-label">Trend Oracle</span>
+                      <p className="matrix-desc">Predict the next wave by analyzing underground sample frequency.</p>
+                    </div>
+                  </div>
+                </div>
               )}
             </>
           )}
