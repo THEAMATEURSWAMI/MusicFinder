@@ -41,14 +41,17 @@ jobs:
           cd android
           ./gradlew assembleDebug
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
       - name: Upload to Firebase App Distribution
         env:
-          SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
         run: |
           npm install -g firebase-tools
-          echo "$SERVICE_ACCOUNT_JSON" > /tmp/gcp_key.json
-          GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp_key.json firebase appdistribution:distribute \
+          firebase appdistribution:distribute \
             android/app/build/outputs/apk/debug/app-debug.apk \
             --app "$FIREBASE_APP_ID" \
             --groups "testers" \
