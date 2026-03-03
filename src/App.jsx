@@ -38,7 +38,6 @@ function App() {
   const [artistNews, setArtistNews] = useState({})
   const [activeTab, setActiveTab] = useState('home')
   const [discoverAlbums, setDiscoverAlbums] = useState(
-  const [discoverAlbums, setDiscoverAlbums] = useState(
     JSON.parse(localStorage.getItem('discover_hydration_v1')) || defaultAlbums
   )
 
