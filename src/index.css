@@ -1606,3 +1606,117 @@ code {
   background: var(--accent-secondary);
   transform: scale(1.1);
 }
+
+/* =====================
+   RESPONSIVE (S23 ULTRA & MOBILE)
+   ===================== */
+@media (max-width: 900px) {
+  .matrix-app {
+    flex-direction: column;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .side-monitor {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #1a1a1a;
+    padding: 1rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+    flex: none;
+  }
+
+  .monitor-header,
+  .branding-node {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  .monitor-header {
+    display: none;
+    /* Hide header label on mobile */
+  }
+
+  .playback-status {
+    flex: 1;
+    margin: 0;
+  }
+
+  .status-item {
+    margin: 0;
+    padding-left: 0.8rem;
+    border-left-width: 1px;
+  }
+
+  .status-item .val {
+    font-size: 0.85rem;
+  }
+
+  .status-item .sub-val {
+    font-size: 0.65rem;
+    display: none;
+    /* Hide artist for brevity on mobile header */
+  }
+
+  .branding-node h1 {
+    font-size: 0.6rem;
+    letter-spacing: 0.2rem;
+  }
+
+  .sys-ver {
+    display: none;
+  }
+
+  .ops-center {
+    padding: 1rem 1rem 120px 1rem;
+    flex: 1 !important;
+    overflow-y: visible !important;
+  }
+
+  .dock-nav {
+    position: fixed !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    bottom: 1rem !important;
+    height: 50px !important;
+    padding: 0 0.5rem !important;
+    width: auto !important;
+  }
+
+  .dock-label {
+    font-size: 0.65rem;
+  }
+
+  .setup-wrapper {
+    padding: 1rem;
+    width: 100%;
+  }
+
+  .setup-tabs {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .setup-divider {
+    display: none;
+  }
+
+  .setup-input-group {
+    flex-direction: column;
+  }
+
+  /* Matrix grid adjustments */
+  .album-matrix-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+
+  .view-matrix h2 {
+    font-size: 1.2rem;
+  }
+}
