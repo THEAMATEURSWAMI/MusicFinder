@@ -4,18 +4,19 @@
   --bg-core: #050505;
   --bg-matrix: #0a0a0a;
   --bg-elevated: #111111;
+  --bg-glass: rgba(13, 13, 13, 0.8);
 
   --accent-data: #00f2ff;
-  /* Matrix Cyan */
   --accent-alert: #ff4d00;
-  /* Industrial Orange */
   --accent-muted: #1a3a4a;
+  --accent-secondary: #c084fc;
 
   --text-data: #e0e0e0;
   --text-dim: #666666;
   --text-sub: #444444;
 
   --border-glow: #1a1a1a;
+  --border-active: #333;
   --monitor-w: 300px;
   --dock-h: 60px;
 }
@@ -31,31 +32,22 @@ body {
   background: var(--bg-core);
   color: var(--text-data);
   line-height: 1.4;
-  overflow: hidden;
-  height: 100vh;
+  overflow-x: hidden;
+  height: auto;
+  min-height: 100vh;
 }
 
-.matrix-app {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  background: var(--bg-core);
-}
-
+/* Background Atmosphere */
 body::before {
-  width: 700px;
-  height: 700px;
-  background: radial-gradient(circle, hsla(270, 75%, 45%, 0.08) 0%, transparent 70%);
-  top: -200px;
-  left: 100px;
-}
-
-body::after {
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, hsla(48, 100%, 50%, 0.05) 0%, transparent 70%);
-  bottom: -200px;
-  right: 50px;
+  content: '';
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(0, 242, 255, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(255, 77, 0, 0.02) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 #root {
@@ -346,54 +338,76 @@ body::after {
   color: #000;
 }
 
-/* ALBUM GRID (MATRIX STYLE) */
+/* =====================
+   ALBUM GRID (MATRIX STYLE)
+   ===================== */
 .album-matrix-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
-  margin-top: 4rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 3rem;
 }
 
 .album-matrix-card {
+  background: var(--bg-matrix);
   border: 1px solid #1a1a1a;
-  background: #0d0d0d;
   position: relative;
-  transition: all 0.3s;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .album-matrix-card:hover {
+  transform: translateY(-8px);
   border-color: var(--accent-data);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }
 
 .album-rank {
   position: absolute;
-  top: 0;
-  left: 0;
-  background: var(--accent-data);
-  color: #000;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 242, 255, 0.1);
+  backdrop-filter: blur(8px);
+  color: var(--accent-data);
   font-family: 'Sometype Mono', monospace;
   font-size: 0.7rem;
   font-weight: 800;
-  padding: 2px 8px;
-  z-index: 1;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 242, 255, 0.2);
+  z-index: 10;
 }
 
 .album-matrix-card img {
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
-  filter: grayscale(1);
-  transition: all 0.3s;
+  transition: transform 0.6s ease;
+}
+
+.album-matrix-card:hover img {
+  transform: scale(1.05);
 }
 
 .album-placeholder {
   width: 100%;
   aspect-ratio: 1;
-  background: #111;
+  background: linear-gradient(135deg, #0a0a0a 0%, #111 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid #1a1a1a;
+  gap: 1rem;
+}
+
+.album-placeholder::before {
+  content: '[METADATA_PENDING]';
+  font-family: 'Sometype Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-sub);
+  letter-spacing: 0.2em;
 }
 
 .album-placeholder span {
@@ -402,43 +416,65 @@ body::after {
   color: var(--accent-data);
   letter-spacing: 0.1em;
   opacity: 0.7;
+  animation: pulse 2s infinite ease-in-out;
 }
 
-.album-matrix-card:hover img {
-  filter: grayscale(0);
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
 }
 
 .album-matrix-info {
-  padding: 1rem;
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .album-matrix-info h3 {
-  font-size: 0.9rem;
-  font-weight: 700;
-  margin-bottom: 0.2rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+  color: #fff;
+  letter-spacing: -0.01em;
 }
 
 .album-matrix-info p {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: var(--text-dim);
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.album-matrix-actions {
+  margin-top: auto;
 }
 
 .btn-matrix-small {
   width: 100%;
-  background: none;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid #222;
-  color: var(--text-data);
-  font-size: 0.65rem;
+  color: #fff;
+  font-size: 0.7rem;
   font-family: 'Sometype Mono', monospace;
-  padding: 0.5rem;
+  font-weight: 700;
+  padding: 0.8rem;
   cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.1em;
 }
 
 .btn-matrix-small:hover {
-  background: #fff;
+  background: var(--accent-data);
   color: #000;
-  border-color: #fff;
+  border-color: var(--accent-data);
+  box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
 }
 
 /* AUTH BUTTON */

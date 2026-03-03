@@ -40,6 +40,9 @@ function App() {
   const [nowPlaying, setNowPlaying] = useState(null)
   const [topTrack, setTopTrack] = useState(null)
   const [recentlyPlayed, setRecentlyPlayed] = useState([])
+  const [discoverAlbums, setDiscoverAlbums] = useState(
+    JSON.parse(localStorage.getItem('discover_hydration_v1')) || defaultAlbums
+  )
 
   // Firebase Cloud Global State
   const [user, setUser] = useState(null)
@@ -184,6 +187,53 @@ function App() {
     fetchRealtime()
     const interval = setInterval(fetchRealtime, 5000) // Poll every 5s for "platform rate" response
     return () => clearInterval(interval)
+  }, [token])
+
+  // ---- Automated Discovery Hydration ----
+  useEffect(() => {
+    if (!token || discoverAlbums.some(a => a.image)) return
+
+    const hydrateDiscover = async () => {
+      console.log("🛠️ Hydrating Discovery Matrix...")
+      const updated = [...discoverAlbums]
+      let changed = false
+
+      // Fetch in small batches to avoid rate limits
+      for (let i = 0; i < updated.length; i++) {
+        if (updated[i].image) continue
+        try {
+          const res = await fetch(
+            `https://api.spotify.com/v1/search?q=album:${encodeURIComponent(updated[i].album)}%20artist:${encodeURIComponent(updated[i].artist)}&type=album&limit=1`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+          const data = await res.json()
+          if (data.albums?.items?.length > 0) {
+            const hit = data.albums.items[0]
+            updated[i] = {
+              ...updated[i],
+              image: hit.images[0]?.url,
+              uri: hit.uri,
+              spotifyUrl: hit.external_urls?.spotify
+            }
+            changed = true
+          }
+        } catch (e) { console.error("Hydration Error:", e) }
+
+        // Update partial progress for UX
+        if (i % 5 === 0 && i > 0) {
+          setDiscoverAlbums([...updated])
+          localStorage.setItem('discover_hydration_v1', JSON.stringify(updated))
+        }
+      }
+
+      if (changed) {
+        setDiscoverAlbums(updated)
+        localStorage.setItem('discover_hydration_v1', JSON.stringify(updated))
+        console.log("✅ Discovery Matrix Hydrated.")
+      }
+    }
+
+    hydrateDiscover()
   }, [token])
 
   // ---- Deep Shuffle Algorithm ----
@@ -476,23 +526,20 @@ function App() {
                 <div className="val">{nowPlaying.item.name}</div>
                 <div className="sub-val">{nowPlaying.item.artists[0].name}</div>
               </div>
-            ) : topTrack ? (
-              <div className="status-item idle">
-                <label>HISTORY_TOP_REF</label>
-                <div className="val">{topTrack.name}</div>
-                <div className="sub-val">{topTrack.artists[0].name}</div>
-              </div>
             ) : (
-              <div className="status-item offline">
-                <label>SIGNAL_SEARCH</label>
-                <div className="val">WAITING_FOR_DATA_SYNC</div>
+              <div className="status-item idle">
+                <label>DISCOVERY_ENGINE</label>
+                <div className="val">
+                  {discoverAlbums.filter(a => a.image).length}/50_ACTIVE
+                </div>
+                <div className="sub-val">Hydrating metadata...</div>
               </div>
             )}
           </div>
 
           <div className="branding-node">
             <h1>UNLOCKED_PRIME</h1>
-            <div className="sys-ver">OP_BUILD_v2.5</div>
+            <div className="sys-ver">OP_BUILD_v3.0_HYDRATED</div>
           </div>
 
           <div className="monitor-auth">
@@ -572,14 +619,14 @@ function App() {
                   )}
 
                   <div className="album-matrix-grid">
-                    {defaultAlbums.map((item) => (
+                    {discoverAlbums.map((item) => (
                       <div key={item.rank} className="album-matrix-card">
                         <div className="album-rank">{item.rank}</div>
                         {item.image ? (
                           <img src={item.image} alt={item.album} />
                         ) : (
                           <div className="album-placeholder">
-                            <span>[NO_IMG_DATA]</span>
+                            <span>[HYDRATING_DATA]</span>
                           </div>
                         )}
                         <div className="album-matrix-info">
@@ -587,15 +634,17 @@ function App() {
                           <p>{item.artist}</p>
                           <div className="album-matrix-actions">
                             <button onClick={() => addToSamples({
-                              id: item.rank,
-                              name: 'Album Selection',
+                              id: item.uri || `rank_${item.rank}`,
+                              name: item.album,
                               artist: item.artist,
                               album: item.album,
                               image: item.image,
+                              spotifyUrl: item.spotifyUrl,
+                              uri: item.uri,
                               addedAt: Date.now(),
                               source: 'Discover'
                             })} className="btn-matrix-small">
-                              VAULT
+                              [SAVE_TO_VAULT]
                             </button>
                           </div>
                         </div>
