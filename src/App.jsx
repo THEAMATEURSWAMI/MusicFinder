@@ -74,6 +74,19 @@ function App() {
         } catch (err) {
           console.error("Cloud Fetch Error:", err)
         }
+
+        // Fetch Profile Configuration
+        try {
+          const profileRef = doc(db, 'profiles', u.uid)
+          const profileSnap = await getDoc(profileRef)
+          if (profileSnap.exists()) {
+            const data = profileSnap.data()
+            if (data.clientId) {
+              setClientId(data.clientId)
+              window.localStorage.setItem("spotify_client_id", data.clientId)
+            }
+          }
+        } catch (err) { console.error("Profile Fetch Error:", err) }
       }
     })
     return () => unsubscribe()
@@ -308,12 +321,17 @@ function App() {
     return array
   }
 
-  const saveClientId = (e) => {
+  const saveClientId = async (e) => {
     e.preventDefault()
     const id = e.target.clientId.value.trim()
     if (id) {
       setClientId(id)
       window.localStorage.setItem("spotify_client_id", id)
+      if (user) {
+        try {
+          await setDoc(doc(db, 'profiles', user.uid), { clientId: id }, { merge: true })
+        } catch (err) { console.error("Profile Save Error:", err) }
+      }
     }
   }
 
@@ -323,11 +341,16 @@ function App() {
     setSpotifyUser(null)
   }
 
-  const resetConfig = () => {
+  const resetConfig = async () => {
     logout()
     setClientId("")
     setPlaylistUrl("")
     window.localStorage.removeItem("spotify_client_id")
+    if (user) {
+      try {
+        await setDoc(doc(db, 'profiles', user.uid), { clientId: "" }, { merge: true })
+      } catch (err) { }
+    }
   }
 
   // ---- Sample Vault Management ----
@@ -505,43 +528,37 @@ function App() {
 
   const setupScreen = (
     <div className="setup-wrapper">
-      <form className="config-form" onSubmit={saveClientId}>
+      <div className="setup-container">
         <div className="setup-header">
           <div className="setup-icon-minimal">[SYSTEM_INIT]</div>
-          <h2>Initialize Pipeline</h2>
-          <p>Link your Spotify Developer credentials to enable automated crate digging and playlist generation.</p>
+          <h2>Authenticate Pipeline</h2>
+          <p>Link your personal Spotify Developer application to enable real-time metadata synchronization and discovery hydration.</p>
         </div>
 
-        <div className="setup-tabs">
-          <div className="setup-option">
-            <div className="setup-option-label">CONSOLE_CONFIG</div>
-            <div className="setup-steps">
-              <p>1. Open Spotify Developer Dashboard</p>
-              <p>2. Create application: Web API focus</p>
-              <p>3. Set Redirect URI to: <code>{window.location.origin}</code></p>
-              <p>4. ENABLE "Implicit Grant" in app settings.</p>
-            </div>
+        <div className="setup-content">
+          <div className="setup-instructions">
+            <h3>Configuration Sequence</h3>
+            <ol>
+              <li>Log into the <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-data)' }}>Spotify Developer Dashboard</a></li>
+              <li>Create an <strong>App</strong> with a Web API focus</li>
+              <li>Set Redirect URI exactly to: <code>{window.location.origin}</code></li>
+              <li>In the app settings, enable <strong>Implicit Grant</strong></li>
+            </ol>
           </div>
-          <div className="setup-divider">|</div>
-          <div className="setup-option">
-            <div className="setup-option-label">CREDENTIAL_ENTRY</div>
-            <div className="setup-steps">
-              <p>1. Copy Client ID from Dashboard</p>
-              <p>2. Ensure Redirect URI matches exactly</p>
-              <p>3. Submit to finalize system link</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="setup-input-group">
-          <input
-            name="clientId"
-            placeholder="[CLIENT_ID_INPUT]"
-            className="setup-input"
-          />
-          <button type="submit" className="btn btn-primary">Connect Pipeline</button>
+          <form className="config-form" onSubmit={saveClientId}>
+            <div className="setup-input-group">
+              <input
+                name="clientId"
+                placeholder="Enter Spotify Client ID..."
+                className="setup-input"
+                autoComplete="off"
+              />
+              <button type="submit" className="btn btn-primary">VERIFY_LINK</button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   )
 
