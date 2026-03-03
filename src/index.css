@@ -1876,3 +1876,110 @@ code {
     padding: 0.6rem !important;
   }
 }
+/* =====================
+   CORE INTELLIGENCE (Artist Radar)
+   ===================== */
+.artist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.artist-card-obsidian {
+  background: var(--bg-matrix);
+  border: 1px solid var(--border-glow);
+  padding: 1.2rem;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.artist-card-obsidian:hover {
+  border-color: var(--accent-data);
+  transform: translateY(-5px);
+  background: var(--bg-elevated);
+}
+
+.artist-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1.2rem;
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.artist-card-obsidian:hover .artist-img {
+  border-color: var(--accent-data);
+}
+
+.artist-name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+
+.artist-genre {
+  font-family: 'Sometype Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.new-release-alert {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 5;
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--accent-alert);
+}
+
+.alert-header {
+  font-family: 'Sometype Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: var(--accent-alert);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.alert-body {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.pulse-glow {
+  animation: glow-pulse 2s infinite ease-in-out;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: inset 0 0 20px rgba(255, 77, 0, 0.1); }
+  50% { box-shadow: inset 0 0 40px rgba(255, 77, 0, 0.3); }
+}
+
+@media (max-width: 600px) {
+  .artist-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.8rem !important;
+  }
+}
