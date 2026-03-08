@@ -145,6 +145,39 @@ body::before {
   margin-top: 0.2rem;
 }
 
+.monitor-metrics {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-matrix);
+  border: 1px solid var(--border-glow);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metric-row label {
+  font-family: 'Sometype Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim); /* Changed from --text-muted to --text-dim as --text-muted is not defined */
+  letter-spacing: 0.05em;
+}
+
+.metric-row .val {
+  font-family: 'Sometype Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.metric-row .val.active { color: var(--accent-data); }
+.metric-row .val.inactive { color: #f87171; }
+
 .branding-node {
   margin-top: auto;
   padding: 1rem 0;
@@ -1806,6 +1839,49 @@ code {
   align-items: center;
   text-align: center;
   overflow: hidden;
+}
+
+/* Profile Splash */
+.profile-splash {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background: var(--bg-core);
+}
+
+.splash-glow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(138, 43, 226, 0.1) 0%, transparent 70%);
+  filter: blur(40px);
+  animation: pulse-aura 4s infinite alternate;
+}
+
+.splash-data {
+  text-align: center;
+  z-index: 2;
+  animation: fadeIn 0.8s ease;
+}
+
+.loader-init {
+  font-family: 'Sometype Mono', monospace;
+  font-size: 1rem;
+  color: var(--accent-data);
+  letter-spacing: 0.2em;
+  margin-bottom: 0.5rem;
+}
+
+.loader-sub {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+@keyframes pulse-aura {
+  from { transform: scale(1); opacity: 0.5; }
+  to { transform: scale(1.2); opacity: 0.8; }
 }
 
 .artist-card-obsidian:hover {

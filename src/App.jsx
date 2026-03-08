@@ -48,6 +48,8 @@ function App() {
 
   // Firebase Cloud Global State
   const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [syncStatus, setSyncStatus] = useState("IDLE")
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -88,6 +90,7 @@ function App() {
           }
         } catch (err) { console.error("Profile Fetch Error:", err) }
       }
+      setAuthLoading(false)
     })
     return () => unsubscribe()
   }, [])
@@ -96,13 +99,17 @@ function App() {
   useEffect(() => {
     if (user && sampleVault.length > 0) {
       const syncToCloud = async () => {
+        setSyncStatus("UPLOADING...")
         try {
           await setDoc(doc(db, 'vaults', user.uid), {
             items: sampleVault,
             lastUpdated: Date.now()
           })
+          setSyncStatus("CLOUD_SYNC_VERIFIED")
+          setTimeout(() => setSyncStatus("PROTECTED"), 3000)
         } catch (err) {
           console.error("Cloud Sync Error:", err)
+          setSyncStatus("SYNC_ERROR")
         }
       }
       const timer = setTimeout(syncToCloud, 2000) // Debounce sync
@@ -586,6 +593,17 @@ function App() {
             )}
           </div>
 
+          <div className="monitor-metrics">
+            <div className="metric-row">
+              <label>CLOUD_LINK</label>
+              <div className={`val ${user ? 'active' : 'inactive'}`}>{user ? 'ESTABLISHED' : 'OFFLINE'}</div>
+            </div>
+            <div className="metric-row">
+              <label>SYNC_STATUS</label>
+              <div className="val">{syncStatus}</div>
+            </div>
+          </div>
+
           <div className="branding-node">
             <h1>UNLOCKED_PRIME</h1>
             <div className="sys-ver">OP_BUILD_v3.1_ULTRASYNC</div>
@@ -599,7 +617,15 @@ function App() {
 
       {/* OPERATIONS CORE */}
       <main className="ops-center">
-        {!clientId ? (
+        {authLoading ? (
+          <div className="profile-splash">
+            <div className="splash-glow"></div>
+            <div className="splash-data">
+              <div className="loader-init">[RETRIEVING_USER_PROFILE]</div>
+              <div className="loader-sub">Decrypting cloud vault...</div>
+            </div>
+          </div>
+        ) : !clientId ? (
           setupScreen
         ) : (
           <div className="flux-workspace">
