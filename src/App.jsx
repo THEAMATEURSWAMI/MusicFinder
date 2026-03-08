@@ -581,14 +581,14 @@ function App() {
                 <div className="val">
                   {discoverAlbums.filter(a => a.image).length}/50_ACTIVE
                 </div>
-                <div className="sub-val">Hydrating metadata...</div>
+                <div className="sub-val">SYSTEM_INIT_COMPLETE_V3.1</div>
               </div>
             )}
           </div>
 
           <div className="branding-node">
             <h1>UNLOCKED_PRIME</h1>
-            <div className="sys-ver">OP_BUILD_v3.0_HYDRATED</div>
+            <div className="sys-ver">OP_BUILD_v3.1_ULTRASYNC</div>
           </div>
 
           <div className="monitor-auth">
