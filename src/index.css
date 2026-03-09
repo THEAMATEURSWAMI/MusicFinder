@@ -165,7 +165,8 @@ body::before {
 .metric-row label {
   font-family: 'Sometype Mono', monospace;
   font-size: 0.65rem;
-  color: var(--text-dim); /* Changed from --text-muted to --text-dim as --text-muted is not defined */
+  color: var(--text-dim);
+  /* Changed from --text-muted to --text-dim as --text-muted is not defined */
   letter-spacing: 0.05em;
 }
 
@@ -175,8 +176,13 @@ body::before {
   font-weight: 700;
 }
 
-.metric-row .val.active { color: var(--accent-data); }
-.metric-row .val.inactive { color: #f87171; }
+.metric-row .val.active {
+  color: var(--accent-data);
+}
+
+.metric-row .val.inactive {
+  color: #f87171;
+}
 
 .branding-node {
   margin-top: auto;
@@ -853,8 +859,15 @@ body::before {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .setup-container {
@@ -960,6 +973,7 @@ body::before {
 .setup-input:focus {
   border-color: var(--accent-data);
 }
+
 .config-form a {
   color: var(--accent-secondary);
   text-decoration: underline;
@@ -1640,13 +1654,18 @@ code {
     flex: none;
   }
 
+  /* HIDE LARGE METRICS ON MOBILE */
+  .monitor-metrics {
+    display: none !important;
+  }
+
   .monitor-pane {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    gap: 1rem;
+    gap: 0.5rem;
   }
 
   .monitor-header {
@@ -1680,7 +1699,7 @@ code {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 180px;
+    max-width: 120px;
   }
 
   .status-item .sub-val {
@@ -1701,7 +1720,7 @@ code {
   .branding-node h1 {
     font-size: 0.55rem !important;
     letter-spacing: 0.1em !important;
-    color: var(--text-dim) !important;
+    color: var(--accent-data) !important;
   }
 
   .sys-ver {
@@ -1720,7 +1739,7 @@ code {
 
   /* OPS CENTER - FULL BLEED WORKSPACE WITH SAFE AREA */
   .ops-center {
-    padding: 1rem 0.5rem calc(80px + env(safe-area-inset-bottom)) 0.5rem !important;
+    padding: 1.5rem 0.6rem calc(80px + env(safe-area-inset-bottom)) 0.6rem !important;
     width: 100%;
     overflow-y: auto !important;
     overflow-x: hidden !important;
@@ -1818,6 +1837,7 @@ code {
     padding: 0.6rem !important;
   }
 }
+
 /* =====================
    CORE INTELLIGENCE (Artist Radar)
    ===================== */
@@ -1880,8 +1900,15 @@ code {
 }
 
 @keyframes pulse-aura {
-  from { transform: scale(1); opacity: 0.5; }
-  to { transform: scale(1.2); opacity: 0.8; }
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  to {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
 }
 
 .artist-card-obsidian:hover {
@@ -1958,8 +1985,15 @@ code {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: inset 0 0 20px rgba(255, 77, 0, 0.1); }
-  50% { box-shadow: inset 0 0 40px rgba(255, 77, 0, 0.3); }
+
+  0%,
+  100% {
+    box-shadow: inset 0 0 20px rgba(255, 77, 0, 0.1);
+  }
+
+  50% {
+    box-shadow: inset 0 0 40px rgba(255, 77, 0, 0.3);
+  }
 }
 
 @media (max-width: 600px) {
