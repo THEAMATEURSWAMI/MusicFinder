@@ -543,25 +543,30 @@ function App() {
   const setupScreen = (
     <div className="setup-wrapper">
       <div className="setup-container">
-        <div className="setup-header">
-          <div className="setup-icon-minimal">[SYSTEM_INIT]</div>
-          <h2>Authenticate Pipeline</h2>
-          <p>Link your personal Spotify Developer application to enable real-time metadata synchronization and discovery hydration.</p>
-        </div>
-
-        <div className="setup-content">
-          {!user ? (
-            <div className="setup-auth-wall" style={{ textAlign: 'center', padding: '2rem 1rem' }}>
-              <h3 style={{ marginBottom: '1rem', color: 'var(--text-data)' }}>Cloud Identity Required</h3>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>
-                Please log in to your persistent cloud profile to securely store your configuration and sync your sample vault across devices and app updates.
-              </p>
-              <button onClick={loginWithGoogle} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                CONNECT_CLOUD_PROFILE
-              </button>
+        {!user ? (
+          <>
+            <div className="setup-header">
+              <div className="setup-icon-minimal">[SYSTEM_INIT]</div>
+              <h2>Cloud Identity Required</h2>
+              <p>Please log in to your persistent cloud profile to securely store your configuration and sync your sample vault across devices and app updates.</p>
             </div>
-          ) : (
-            <>
+            <div className="setup-content">
+              <div className="setup-auth-wall" style={{ textAlign: 'center', padding: '1rem' }}>
+                <button onClick={loginWithGoogle} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                  CONNECT_CLOUD_PROFILE
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="setup-header">
+              <div className="setup-icon-minimal">[SPOTIFY_LINK]</div>
+              <h2>Authenticate Pipeline</h2>
+              <p>Link your personal Spotify Developer application to enable real-time metadata synchronization and discovery hydration.</p>
+            </div>
+
+            <div className="setup-content">
               <div className="setup-instructions">
                 <h3>Configuration Sequence</h3>
                 <ol>
@@ -583,9 +588,9 @@ function App() {
                   <button type="submit" className="btn btn-primary">VERIFY_LINK</button>
                 </div>
               </form>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

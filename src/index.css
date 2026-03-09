@@ -1644,7 +1644,7 @@ code {
     min-height: unset;
     border-right: none;
     border-bottom: 2px solid #1a1a1a;
-    padding: calc(0.6rem + env(safe-area-inset-top)) 1rem 0.6rem 1rem !important;
+    padding: calc(0.6rem + max(36px, env(safe-area-inset-top, 0px))) 1rem 0.6rem 1rem !important;
     flex-direction: row !important;
     align-items: center !important;
     position: sticky;
@@ -1741,7 +1741,7 @@ code {
 
   /* OPS CENTER - FULL BLEED WORKSPACE WITH SAFE AREA */
   .ops-center {
-    padding: calc(85px + env(safe-area-inset-top)) 0.8rem calc(80px + env(safe-area-inset-bottom)) 0.8rem !important;
+    padding: calc(85px + max(36px, env(safe-area-inset-top, 0px))) 0.8rem calc(80px + env(safe-area-inset-bottom, 0px)) 0.8rem !important;
     width: 100%;
     overflow-y: auto !important;
     overflow-x: hidden !important;
