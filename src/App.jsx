@@ -4,7 +4,7 @@ import VideoParser from './VideoParser'
 import SampleLab from './SampleLab'
 import './index.css'
 import { auth, googleProvider, db } from './firebase'
-import { signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth'
+import { signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 const SCOPES = [
@@ -122,7 +122,7 @@ function App() {
 
   const loginWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider)
+      await signInWithRedirect(auth, googleProvider)
     } catch (err) {
       console.error("Auth Error:", err)
     }
