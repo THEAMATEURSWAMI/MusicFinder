@@ -32,7 +32,6 @@
   color: #fff;
 }
 
-/* Header */
 .lab-header {
   display: flex;
   align-items: center;
@@ -43,6 +42,7 @@
   border: 1px solid var(--glass-border);
   border-radius: 20px;
   padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
 }
 
 .lab-title-block {
@@ -635,20 +635,51 @@ code.meta-val {
   .vault-card {
     grid-template-columns: 48px 1fr;
     grid-template-rows: auto auto;
+    padding: 0.8rem;
   }
 
   .vault-actions {
     grid-column: 1 / -1;
     justify-content: flex-start;
+    gap: 0.4rem;
+  }
+
+  .vault-btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.7rem;
   }
 
   .lab-header {
     flex-direction: column;
     align-items: flex-start;
+    padding: 1.25rem;
   }
 
   .lab-stats {
     width: 100%;
     justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .stat-pill {
+    padding: 0.5rem 0.75rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .stat-num {
+    font-size: 1.1rem;
+  }
+
+  .lab-title {
+    font-size: 1.3rem;
+  }
+
+  .lab-empty h3 {
+    font-size: 1.1rem;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
   }
 }

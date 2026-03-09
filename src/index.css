@@ -673,10 +673,10 @@ body::before {
   gap: 1.5rem;
   flex-wrap: wrap;
   margin-bottom: 2rem;
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 2rem;
   background: var(--card-bg);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
+  border-radius: 20px;
 }
 
 .section-intro p {
@@ -1739,7 +1739,7 @@ code {
 
   /* OPS CENTER - FULL BLEED WORKSPACE WITH SAFE AREA */
   .ops-center {
-    padding: 1.5rem 0.6rem calc(80px + env(safe-area-inset-bottom)) 0.6rem !important;
+    padding: calc(64px + 1rem) 0.6rem calc(80px + env(safe-area-inset-bottom)) 0.6rem !important;
     width: 100%;
     overflow-y: auto !important;
     overflow-x: hidden !important;
