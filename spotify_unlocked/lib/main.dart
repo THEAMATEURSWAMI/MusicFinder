@@ -59,6 +59,8 @@ class MusicFinderApp extends StatelessWidget {
       home: const AuthGate(),
     );
   }
+}
+
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
