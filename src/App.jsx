@@ -6,6 +6,7 @@ import './index.css'
 import { auth, googleProvider, db } from './firebase'
 import { signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { Preferences } from '@capacitor/preferences'
 
 const SCOPES = [
   "playlist-modify-private",
@@ -50,6 +51,24 @@ function App() {
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [syncStatus, setSyncStatus] = useState("IDLE")
+
+  // Capacitor Native Persistent Storage
+  useEffect(() => {
+    const initStorage = async () => {
+      try {
+        const idRes = await Preferences.get({ key: 'spotify_client_id' })
+        if (idRes.value) {
+          setClientId(idRes.value)
+        } else if (window.localStorage.getItem("spotify_client_id")) {
+          // Migrate old localStorage to resilient Preferences
+          const oldId = window.localStorage.getItem("spotify_client_id")
+          setClientId(oldId)
+          await Preferences.set({ key: 'spotify_client_id', value: oldId })
+        }
+      } catch (e) { console.error("Preferences Load Error", e) }
+    }
+    initStorage()
+  }, [])
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -337,6 +356,10 @@ function App() {
     if (id) {
       setClientId(id)
       window.localStorage.setItem("spotify_client_id", id)
+      try {
+        await Preferences.set({ key: 'spotify_client_id', value: id })
+      } catch (err) { }
+
       if (user) {
         try {
           await setDoc(doc(db, 'profiles', user.uid), { clientId: id }, { merge: true })
@@ -358,6 +381,8 @@ function App() {
     setClientId("")
     setPlaylistUrl("")
     window.localStorage.removeItem("spotify_client_id")
+    try { await Preferences.remove({ key: 'spotify_client_id' }) } catch { }
+
     if (user) {
       setSyncStatus("WIPING_CLOUD...")
       try {
@@ -543,54 +568,51 @@ function App() {
   const setupScreen = (
     <div className="setup-wrapper">
       <div className="setup-container">
-        {!user ? (
-          <>
-            <div className="setup-header">
-              <div className="setup-icon-minimal">[SYSTEM_INIT]</div>
-              <h2>Cloud Identity Required</h2>
-              <p>Please log in to your persistent cloud profile to securely store your configuration and sync your sample vault across devices and app updates.</p>
-            </div>
-            <div className="setup-content">
-              <div className="setup-auth-wall" style={{ textAlign: 'center', padding: '1rem' }}>
-                <button onClick={loginWithGoogle} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                  CONNECT_CLOUD_PROFILE
-                </button>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="setup-header">
-              <div className="setup-icon-minimal">[SPOTIFY_LINK]</div>
-              <h2>Authenticate Pipeline</h2>
-              <p>Link your personal Spotify Developer application to enable real-time metadata synchronization and discovery hydration.</p>
-            </div>
+        <div className="setup-header">
+          <div className="setup-icon-minimal">[SPOTIFY_LINK]</div>
+          <h2>Authenticate Pipeline</h2>
+          <p>Link your personal Spotify Developer application to enable real-time metadata synchronization and discovery hydration.</p>
+        </div>
 
-            <div className="setup-content">
-              <div className="setup-instructions">
-                <h3>Configuration Sequence</h3>
-                <ol>
-                  <li>Log into the <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-data)' }}>Spotify Developer Dashboard</a></li>
-                  <li>Create an <strong>App</strong> with a Web API focus</li>
-                  <li>Set Redirect URI exactly to: <code>{window.location.origin}</code></li>
-                  <li>In the app settings, enable <strong>Implicit Grant</strong></li>
-                </ol>
-              </div>
+        <div className="setup-content">
+          <div className="setup-instructions">
+            <h3>Configuration Sequence</h3>
+            <ol>
+              <li>Log into the <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-data)' }}>Spotify Developer Dashboard</a></li>
+              <li>Create an <strong>App</strong> with a Web API focus</li>
+              <li>Set Redirect URI exactly to: <code>{window.location.origin}</code></li>
+              <li>In the app settings, enable <strong>Implicit Grant</strong></li>
+            </ol>
+          </div>
 
-              <form className="config-form" onSubmit={saveClientId}>
-                <div className="setup-input-group">
-                  <input
-                    name="clientId"
-                    placeholder="Enter Spotify Client ID..."
-                    className="setup-input"
-                    autoComplete="off"
-                  />
-                  <button type="submit" className="btn btn-primary">VERIFY_LINK</button>
-                </div>
-              </form>
+          <form className="config-form" onSubmit={saveClientId}>
+            <div className="setup-input-group">
+              <input
+                name="clientId"
+                placeholder="Enter Spotify Client ID..."
+                className="setup-input"
+                autoComplete="off"
+              />
+              <button type="submit" className="btn btn-primary">VERIFY_LINK</button>
             </div>
-          </>
-        )}
+          </form>
+
+          {!user && (
+            <div className="setup-auth-wall" style={{ marginTop: '2rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '12px' }}>
+              <h4 style={{ color: 'var(--text-data)', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Cloud Recovery (Optional)</h4>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '1rem' }}>
+                If you use the Web App, log into Cloud Identity. (Not supported securely overlaid inside Android yet).
+              </p>
+              <button
+                onClick={loginWithGoogle}
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center', background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-dim)' }}
+              >
+                WEB_APP ONLY: LOGIN TO CLOUD
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
