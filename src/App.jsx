@@ -4,7 +4,7 @@ import VideoParser from './VideoParser'
 import SampleLab from './SampleLab'
 import './index.css'
 import { auth, googleProvider, db } from './firebase'
-import { signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'firebase/auth'
+import { signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { Preferences } from '@capacitor/preferences'
 
@@ -51,6 +51,12 @@ function App() {
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [syncStatus, setSyncStatus] = useState("IDLE")
+
+  // Custom Auth State
+  const [authEmail, setAuthEmail] = useState("")
+  const [authPass, setAuthPass] = useState("")
+  const [isRegistering, setIsRegistering] = useState(false)
+  const [authError, setAuthError] = useState("")
 
   // Capacitor Native Persistent Storage
   useEffect(() => {
@@ -144,6 +150,25 @@ function App() {
       await signInWithRedirect(auth, googleProvider)
     } catch (err) {
       console.error("Auth Error:", err)
+    }
+  }
+
+  const handleEmailAuth = async (e) => {
+    e.preventDefault()
+    setAuthError("")
+    if (!authEmail || !authPass) {
+      setAuthError("Email and Password required.")
+      return
+    }
+    try {
+      if (isRegistering) {
+        await createUserWithEmailAndPassword(auth, authEmail, authPass)
+      } else {
+        await signInWithEmailAndPassword(auth, authEmail, authPass)
+      }
+    } catch (err) {
+      console.error("Email Auth Error:", err)
+      setAuthError(err.message.replace("Firebase: ", ""))
     }
   }
 
@@ -598,18 +623,50 @@ function App() {
           </form>
 
           {!user && (
-            <div className="setup-auth-wall" style={{ marginTop: '2rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '12px' }}>
-              <h4 style={{ color: 'var(--text-data)', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Cloud Recovery (Optional)</h4>
+            <div className="setup-auth-wall" style={{ marginTop: '2rem', background: 'rgba(255,255,255,0.02)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--text-data)', fontSize: '0.9rem', margin: 0 }}>Cloud Identity</h4>
+                <div style={{ fontSize: '0.75rem', color: 'var(--accent-secondary)' }}>
+                  {isRegistering ? 'INITIALIZATION' : 'RECOVERY_MODE'}
+                </div>
+              </div>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '1rem' }}>
-                If you use the Web App, log into Cloud Identity. (Not supported securely overlaid inside Android yet).
+                Create or log into a profile to permanently sync your Vault and config across devices.
               </p>
-              <button
-                onClick={loginWithGoogle}
-                className="btn btn-primary"
-                style={{ width: '100%', justifyContent: 'center', background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-dim)' }}
-              >
-                WEB_APP ONLY: LOGIN TO CLOUD
-              </button>
+
+              <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <input
+                  type="email"
+                  placeholder="sys.op@domain.com"
+                  className="setup-input"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+                <input
+                  type="password"
+                  placeholder="Encryption Key"
+                  className="setup-input"
+                  value={authPass}
+                  onChange={(e) => setAuthPass(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+                {authError && <div style={{ color: 'var(--accent-alert)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{authError}</div>}
+
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
+                    {isRegistering ? 'CREATE_PROFILE' : 'AUTHENTICATE'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setIsRegistering(!isRegistering); setAuthError(""); }}
+                    className="btn"
+                    style={{ flex: 1, justifyContent: 'center', background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-dim)' }}
+                  >
+                    {isRegistering ? 'HAVE_ACCOUNT?' : 'NEW_SYSTEM?'}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
         </div>
