@@ -550,27 +550,41 @@ function App() {
         </div>
 
         <div className="setup-content">
-          <div className="setup-instructions">
-            <h3>Configuration Sequence</h3>
-            <ol>
-              <li>Log into the <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-data)' }}>Spotify Developer Dashboard</a></li>
-              <li>Create an <strong>App</strong> with a Web API focus</li>
-              <li>Set Redirect URI exactly to: <code>{window.location.origin}</code></li>
-              <li>In the app settings, enable <strong>Implicit Grant</strong></li>
-            </ol>
-          </div>
-
-          <form className="config-form" onSubmit={saveClientId}>
-            <div className="setup-input-group">
-              <input
-                name="clientId"
-                placeholder="Enter Spotify Client ID..."
-                className="setup-input"
-                autoComplete="off"
-              />
-              <button type="submit" className="btn btn-primary">VERIFY_LINK</button>
+          {!user ? (
+            <div className="setup-auth-wall" style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+              <h3 style={{ marginBottom: '1rem', color: 'var(--text-data)' }}>Cloud Identity Required</h3>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>
+                Please log in to your persistent cloud profile to securely store your configuration and sync your sample vault across devices and app updates.
+              </p>
+              <button onClick={loginWithGoogle} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                CONNECT_CLOUD_PROFILE
+              </button>
             </div>
-          </form>
+          ) : (
+            <>
+              <div className="setup-instructions">
+                <h3>Configuration Sequence</h3>
+                <ol>
+                  <li>Log into the <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-data)' }}>Spotify Developer Dashboard</a></li>
+                  <li>Create an <strong>App</strong> with a Web API focus</li>
+                  <li>Set Redirect URI exactly to: <code>{window.location.origin}</code></li>
+                  <li>In the app settings, enable <strong>Implicit Grant</strong></li>
+                </ol>
+              </div>
+
+              <form className="config-form" onSubmit={saveClientId}>
+                <div className="setup-input-group">
+                  <input
+                    name="clientId"
+                    placeholder="Enter Spotify Client ID..."
+                    className="setup-input"
+                    autoComplete="off"
+                  />
+                  <button type="submit" className="btn btn-primary">VERIFY_LINK</button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>
