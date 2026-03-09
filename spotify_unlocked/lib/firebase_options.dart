@@ -41,18 +41,17 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDBIo8uYyXjksCkfA8kQixymrvdEzgx81U',
-    appId: '1:221089588903:web:b25b7d22d5d68806361d82',
-    messagingSenderId: '221089588903',
-    projectId: 'chessprotrainer',
-    authDomain: 'chessprotrainer.firebaseapp.com',
-    storageBucket: 'chessprotrainer.firebasestorage.app',
-    measurementId: 'G-9D3BP5RNN0',
+    apiKey: 'AIzaSyD6UAtEYVfcsN9MIB0ns3UkVhx0XKPq048',
+    appId: '1:504617755413:web:95f190119e7a29e1feff1c',
+    messagingSenderId: '504617755413',
+    projectId: 'spotifyunlocked',
+    authDomain: 'spotifyunlocked.firebaseapp.com',
+    storageBucket: 'spotifyunlocked.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyD6UAtEYVfcsN9MIB0ns3UkVhx0XKPq048',
-    appId: '1:504617755413:android:f5a7c8503f629944feff1c',
+    appId: '1:504617755413:android:35832a7d8571bbcffeff1c',
     messagingSenderId: '504617755413',
     projectId: 'spotifyunlocked',
     storageBucket: 'spotifyunlocked.firebasestorage.app',
@@ -64,26 +63,25 @@ class DefaultFirebaseOptions {
     messagingSenderId: '504617755413',
     projectId: 'spotifyunlocked',
     storageBucket: 'spotifyunlocked.firebasestorage.app',
-    iosBundleId: 'com.spotifyunlocked.app.spotifyUnlocked',
+    iosBundleId: 'com.spotifyunlocked',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBwxMrhFGLbtqTAWmHk8bo1xBGAJgEaVVw',
-    appId: '1:221089588903:ios:7452087c587d4a15361d82',
-    messagingSenderId: '221089588903',
-    projectId: 'chessprotrainer',
-    storageBucket: 'chessprotrainer.firebasestorage.app',
-    iosBundleId: 'com.spotifyunlocked.app.spotifyUnlocked',
+    apiKey: 'AIzaSyBP46IDvHEzxr8sOy9kqhGUyfto_71xHpY',
+    appId: '1:504617755413:ios:02078024050600f8feff1c',
+    messagingSenderId: '504617755413',
+    projectId: 'spotifyunlocked',
+    storageBucket: 'spotifyunlocked.firebasestorage.app',
+    iosBundleId: 'com.spotifyunlocked',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDBIo8uYyXjksCkfA8kQixymrvdEzgx81U',
-    appId: '1:221089588903:web:d39e6435fce82367361d82',
-    messagingSenderId: '221089588903',
-    projectId: 'chessprotrainer',
-    authDomain: 'chessprotrainer.firebaseapp.com',
-    storageBucket: 'chessprotrainer.firebasestorage.app',
-    measurementId: 'G-BWR0C7PKXY',
+    apiKey: 'AIzaSyD6UAtEYVfcsN9MIB0ns3UkVhx0XKPq048',
+    appId: '1:504617755413:web:95f190119e7a29e1feff1c',
+    messagingSenderId: '504617755413',
+    projectId: 'spotifyunlocked',
+    authDomain: 'spotifyunlocked.firebaseapp.com',
+    storageBucket: 'spotifyunlocked.firebasestorage.app',
   );
 
 }

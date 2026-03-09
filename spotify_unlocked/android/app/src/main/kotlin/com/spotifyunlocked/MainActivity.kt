@@ -1,4 +1,4 @@
-package com.spotifyunlocked.app.spotify_unlocked
+package com.spotifyunlocked
 
 import io.flutter.embedding.android.FlutterActivity
 
