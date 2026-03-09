@@ -1644,7 +1644,7 @@ code {
     min-height: unset;
     border-right: none;
     border-bottom: 2px solid #1a1a1a;
-    padding: 0.6rem 1rem;
+    padding: calc(0.6rem + env(safe-area-inset-top)) 1rem 0.6rem 1rem !important;
     flex-direction: row !important;
     align-items: center !important;
     position: sticky;
@@ -1710,17 +1710,19 @@ code {
   /* BRANDING MINIMIZATION */
   .branding-node {
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 0 0.5rem 0 0 !important;
     border: none !important;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    flex: none;
   }
 
   .branding-node h1 {
     font-size: 0.55rem !important;
     letter-spacing: 0.1em !important;
     color: var(--accent-data) !important;
+    white-space: nowrap;
   }
 
   .sys-ver {
@@ -1739,7 +1741,7 @@ code {
 
   /* OPS CENTER - FULL BLEED WORKSPACE WITH SAFE AREA */
   .ops-center {
-    padding: calc(64px + 1rem) 0.6rem calc(80px + env(safe-area-inset-bottom)) 0.6rem !important;
+    padding: calc(85px + env(safe-area-inset-top)) 0.8rem calc(80px + env(safe-area-inset-bottom)) 0.8rem !important;
     width: 100%;
     overflow-y: auto !important;
     overflow-x: hidden !important;

@@ -55,6 +55,7 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u)
       if (u) {
+        setSyncStatus("RETRIEVING_PROFILE...")
         console.log("🚀 Cloud Identity Verified:", u.displayName)
         // Fetch vault from cloud
         try {
@@ -63,7 +64,6 @@ function App() {
           if (docSnap.exists()) {
             const cloudVault = docSnap.data().items || []
             setSampleVault(prev => {
-              // Merge: favor cloud content if different, but don't lose local new additions
               const merged = [...cloudVault]
               prev.forEach(localItem => {
                 if (!merged.find(c => (c.id && c.id === localItem.id) || (c.uri && c.uri === localItem.uri))) {
@@ -84,11 +84,14 @@ function App() {
           if (profileSnap.exists()) {
             const data = profileSnap.data()
             if (data.clientId) {
+              console.log("📌 Restoring Client ID from Cloud Vault")
               setClientId(data.clientId)
               window.localStorage.setItem("spotify_client_id", data.clientId)
             }
           }
         } catch (err) { console.error("Profile Fetch Error:", err) }
+
+        setSyncStatus("PROTECTED")
       }
       setAuthLoading(false)
     })
@@ -349,13 +352,17 @@ function App() {
   }
 
   const resetConfig = async () => {
+    if (!window.confirm("CRITICAL: This will permanently wipe your Spotify Client ID from both this device and the cloud. Proceed?")) return;
+
     logout()
     setClientId("")
     setPlaylistUrl("")
     window.localStorage.removeItem("spotify_client_id")
     if (user) {
+      setSyncStatus("WIPING_CLOUD...")
       try {
         await setDoc(doc(db, 'profiles', user.uid), { clientId: "" }, { merge: true })
+        setSyncStatus("CLOUD_WIPED")
       } catch (err) { }
     }
   }
